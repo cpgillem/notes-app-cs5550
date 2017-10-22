@@ -1,0 +1,28 @@
+USE notes_app;
+
+CREATE TABLE users (
+	id	INT(10) NOT NULL UNIQUE,
+	name	VARCHAR(191) NOT NULL UNIQUE,
+	admin	BOOLEAN DEFAULT FALSE NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE notes (
+	id	INT(10) NOT NULL UNIQUE,
+	content TEXT NOT NULL,
+	time	DATETIME,
+	user_id	INT(10) NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE tags (
+	id	INT(10) NOT NULL UNIQUE,
+	name	VARCHAR(191) NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE note_tag (
+	note_id	INT(10) NOT NULL,
+	tag_id	INT(10) NOT NULL,
+	PRIMARY KEY (note_id, tag_id)
+);

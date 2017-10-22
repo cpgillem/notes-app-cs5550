@@ -1,0 +1,6 @@
+USE notes_app;
+
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS note_tag;
