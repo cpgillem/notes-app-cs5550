@@ -44,6 +44,71 @@ func TestLoadUser(t *testing.T) {
 	}
 }
 
+func TestLoadUsers(t *testing.T) {
+	testDB := SetUpDbTest()
+	defer TearDownDbTest(testDB)
+
+	// Define multiple distinct sets of test data.
+	testCases := []struct{
+		query string
+		users []User
+	} {
+		{
+			query: "", 
+			users: []User{
+				User { Name: "test", Admin: false },
+			},
+		},
+	}
+
+	// Test each case.
+	for _, c := range testCases {
+		t.Run("Q=" + c.query, func(t *testing.T) {
+			var insertedUsers []User
+
+			for _, u := range(c.users) {
+				res, err := testDB.Exec("INSERT INTO users (name, admin) VALUES (?, ?)", u.Name, u.Admin)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				newID, err := res.LastInsertId()
+
+				newUser := User {
+					Db: testDB,
+					ID: newID,
+					Name: u.Name,
+					Admin: u.Admin,
+				}
+
+				insertedUsers = append(insertedUsers, newUser)
+			}
+
+			// Test the function itself.
+			loadedUsers, err := LoadUsers(testDB, c.query)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Make sure all expected users are found.
+			for _, caseU := range(loadedUsers) {
+				found := false
+				for _, u := range(insertedUsers) {
+					if caseU.ID == u.ID {
+						found = true
+						break
+					}
+				}
+
+				if found != true {
+					t.Errorf("Could not find user with id %v from query %v", caseU.ID, c.query)
+				}
+			}
+		})
+	}
+}
+
 func TestSaveNew(t *testing.T) {
 	testDB := SetUpDbTest()
 	defer TearDownDbTest(testDB)

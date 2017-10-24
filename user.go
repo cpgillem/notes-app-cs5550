@@ -40,6 +40,41 @@ func LoadUser(db *sql.DB, id int64) (user *User, err error) {
 	return
 }
 
+// LoadUsers loads a slice of Users from the database, given a query fragment.
+// Query fragments are the part which follows WHERE, unless you want all models.
+// Examples of query fragments:
+// - id < 10 AND id > 2
+// - name = "?" (succeeded by a string)
+// - (empty string)
+func LoadUsers(db *sql.DB, query string, vars ...interface{}) (users []User, err error) {
+	// If the query is not empty, add WHERE to the beginning.
+	queryString := query
+	if len(query) > 0 {
+		queryString = "WHERE " + queryString
+	}
+
+	// Set users to empty slice.
+	users = []User{}
+
+	rows, err := db.Query("SELECT id, name, admin FROM users " + queryString, vars...)
+
+	if rows != nil {
+		defer rows.Close() 
+	}
+
+	if err == nil {
+		// If the query worked, load the results into models and return them.
+		for rows.Next() {
+			user := NewUser(db)
+			if err := rows.Scan(&user.ID, &user.Name, &user.Admin); err == nil {
+				users = append(users, *user)
+			}
+		}
+	}
+
+	return
+}
+
 // Save persists any recently changed data to the database.
 func (u *User) Save() error {
 	err := error(nil)
