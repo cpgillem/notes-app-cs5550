@@ -7,143 +7,144 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func TestUser(t *testing.T) {
+func setup() *sql.DB {
 	// Open a database connection. This presumes that the testing database has
 	// been created and that the user has access.
-	testDB, err := sql.Open("mysql", "notes_app:notes_app@/notes_app_testing")
+	newDB, err := sql.Open("mysql", "notes_app:notes_app@/notes_app_testing")
+	if err != nil {
+		panic(err)
+	}
+	SetUpDB(newDB)
+
+	return newDB
+}
+
+func teardown(testDB *sql.DB) {
+	defer testDB.Close()
+	TearDownDB(testDB)
+}
+
+func TestNewUser(t *testing.T) {
+	testDB := setup()
+	defer teardown(testDB)
+
+	user := NewUser(testDB)
+	if user.Db != testDB {
+		t.Fatal("The database connections did not match.")
+	}
+}
+
+func TestLoadUser(t *testing.T) {
+	testDB := setup()
+	defer teardown(testDB)
+
+	// Manually create a user to test with.
+	_, err := testDB.Exec("INSERT INTO users (id, name, admin) VALUES (1, 'test', false)")
 	if err != nil {
 		t.Fatal(err)
 	}
-	
-	if testDB == nil {
-		t.Fatal("Could not create the database connection.")
+
+	// Load the user.
+	user, err := LoadUser(testDB, 1)
+
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	// All this test needs to do is make sure that the original database
-	// connection is passed to the new user model.
-	t.Run("NewUser", func(t *testing.T) {
-		user := NewUser(testDB)
-		if user.Db != testDB {
-			t.Fatal("The database connections did not match.")
-		}
-	})
+	if user.Id != 1 {
+		t.Errorf("Expected id 1, got %v", user.Id)
+	}
 
-	// Tests creating a user and loading the data into a model struct.
-	t.Run("LoadUser", func(t *testing.T) {
-		SetUpDB(testDB)
-		defer TearDownDB(testDB)
+	if user.Name != "test" {
+		t.Errorf("Expected name 'test', got %v", user.Name)
+	}
 
-		// Manually create a user to test with.
-		_, err = testDB.Exec("INSERT INTO users (id, name, admin) VALUES (1, 'test', false)")
-		if err != nil {
-			t.Fatal(err)
-		}
+	if user.Admin != false {
+		t.Errorf("Expected admin false, got %v", user.Admin)
+	}
+}
 
-		// Load the user.
-		user, err := LoadUser(testDB, 1)
+func TestSaveNew(t *testing.T) {
+	testDB := setup()
+	defer teardown(testDB)
 
-		if err != nil {
-			t.Fatal(err)
-		}
+	// Test one with all values defined.
+	user := User {
+		Db: testDB,
+		Name: "test",
+		Admin: true,
+	}
 
-		if user.Id != 1 {
-			t.Errorf("Expected id 1, got %v", user.Id)
-		}
+	// This should store successfully.
+	err := user.Save()
+	
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if user.Name != "test" {
-			t.Errorf("Expected name 'test', got %v", user.Name)
-		}
+	// Query the database. The Save function should have stored the id.
+	var name string
+	var admin bool
 
-		if user.Admin != false {
-			t.Errorf("Expected admin false, got %v", user.Admin)
-		}
-	})
+	err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.Id).Scan(&name, &admin)
 
-	// Ensures that all the data from a new user model will save.
-	t.Run("SaveNew", func(t *testing.T) {
-		SetUpDB(testDB)
-		defer TearDownDB(testDB)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Test one with all values defined.
-		user := User {
-			Db: testDB,
-			Name: "test",
-			Admin: true,
-		}
+	if name != user.Name {
+		t.Errorf("Expected %v, got %v", user.Name, name)
+	}
 
-		// This should store successfully.
-		err := user.Save()
-		
-		if err != nil {
-			t.Fatal(err)
-		}
+	if admin != user.Admin {
+		t.Errorf("Expected %v, got %v", user.Admin, admin)
+	}
+}
 
-		// Query the database. The Save function should have stored the id.
-		var name string
-		var admin bool
+func TestSave(t *testing.T) {
+	testDB := setup()
+	defer teardown(testDB)
 
-		err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.Id).Scan(&name, &admin)
+	// Create a sample user and retrieve its id.
+	res, err := testDB.Exec("INSERT INTO users (name, admin) VALUES ('test', true)")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if err != nil {
-			t.Fatal(err)
-		}
+	id, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if name != user.Name {
-			t.Errorf("Expected %v, got %v", user.Name, name)
-		}
+	// Create a corresponding model manually.
+	user := User {
+		Db: testDB,
+		Id: id,
+		Name: "name-updated",
+		Admin: false,
+	}
 
-		if admin != user.Admin {
-			t.Errorf("Expected %v, got %v", user.Admin, admin)
-		}
-	})
+	// Save the model.
+	err = user.Save()
 
-	// This will test the modification of a user that already exists in the 
-	// database.
-	t.Run("Save", func(t *testing.T) {
-		SetUpDB(testDB)
-		defer TearDownDB(testDB)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Create a sample user and retrieve its id.
-		res, err := testDB.Exec("INSERT INTO users (name, admin) VALUES ('test', true)")
-		if err != nil {
-			t.Fatal(err)
-		}
+	// Ensure that the new information is saved.
+	var name string
+	var admin bool
+	err = testDB.QueryRow("SELECT name, admin FROM users WHERE id = ?", id).Scan(&name, &admin)
 
-		id, err := res.LastInsertId()
-		if err != nil {
-			t.Fatal(err)
-		}
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Create a corresponding model manually.
-		user := User {
-			Db: testDB,
-			Id: id,
-			Name: "name-updated",
-			Admin: false,
-		}
+	if name != user.Name {
+		t.Errorf("Expected %v, got %v", user.Name, name)
+	}
 
-		// Save the model.
-		err = user.Save()
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Ensure that the new information is saved.
-		var name string
-		var admin bool
-		err = testDB.QueryRow("SELECT name, admin FROM users WHERE id = ?", id).Scan(&name, &admin)
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if name != user.Name {
-			t.Errorf("Expected %v, got %v", user.Name, name)
-		}
-
-		if admin != user.Admin {
-			t.Errorf("Expected %v, got %v", user.Admin, admin)
-		}
-	})
+	if admin != user.Admin {
+		t.Errorf("Expected %v, got %v", user.Admin, admin)
+	}
 }
