@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,10 +10,21 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+// Define a global database connection.
+var db *sql.DB
+
+// GetIndex handles requests for the main page of the site.
+func GetIndex(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "test")
+}
+
+// GetUser retrieves a user and their data by id.
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	
 }
 
 func main() {
@@ -28,9 +40,15 @@ func main() {
 	// Read command line arguments or any config data.
 	port := os.Args[1]
 
+	// Setup the database connection.
+	_, err := sql.Open("mysql", "notes_app:notes_app@/notes_app")
+	if err != nil {
+		panic(err)
+	}
+
 	// Define the routes.
 	router := mux.NewRouter()
-	router.HandleFunc("/", IndexHandler)
+	router.HandleFunc("/", GetIndex)
 
 	// Define a server object.
 	server := &http.Server {
