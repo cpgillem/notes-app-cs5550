@@ -23,7 +23,7 @@ func TestUser(t *testing.T) {
 	// connection is passed to the new user model.
 	t.Run("NewUser", func(t *testing.T) {
 		user := NewUser(testDB)
-		if user.db != testDB {
+		if user.Db != testDB {
 			t.Fatal("The database connections did not match.")
 		}
 	})
@@ -46,16 +46,16 @@ func TestUser(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if user.id != 1 {
-			t.Errorf("Expected id 1, got %v", user.id)
+		if user.Id != 1 {
+			t.Errorf("Expected id 1, got %v", user.Id)
 		}
 
-		if user.name != "test" {
-			t.Errorf("Expected name 'test', got %v", user.name)
+		if user.Name != "test" {
+			t.Errorf("Expected name 'test', got %v", user.Name)
 		}
 
-		if user.admin != false {
-			t.Errorf("Expected admin false, got %v", user.admin)
+		if user.Admin != false {
+			t.Errorf("Expected admin false, got %v", user.Admin)
 		}
 	})
 
@@ -66,9 +66,9 @@ func TestUser(t *testing.T) {
 
 		// Test one with all values defined.
 		user := User {
-			db: testDB,
-			name: "test",
-			admin: true,
+			Db: testDB,
+			Name: "test",
+			Admin: true,
 		}
 
 		// This should store successfully.
@@ -82,18 +82,18 @@ func TestUser(t *testing.T) {
 		var name string
 		var admin bool
 
-		err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.id).Scan(&name, &admin)
+		err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.Id).Scan(&name, &admin)
 
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if name != user.name {
-			t.Errorf("Expected %v, got %v", user.name, name)
+		if name != user.Name {
+			t.Errorf("Expected %v, got %v", user.Name, name)
 		}
 
-		if admin != user.admin {
-			t.Errorf("Expected %v, got %v", user.admin, admin)
+		if admin != user.Admin {
+			t.Errorf("Expected %v, got %v", user.Admin, admin)
 		}
 	})
 
@@ -116,10 +116,10 @@ func TestUser(t *testing.T) {
 
 		// Create a corresponding model manually.
 		user := User {
-			db: testDB,
-			id: id,
-			name: "name-updated",
-			admin: false,
+			Db: testDB,
+			Id: id,
+			Name: "name-updated",
+			Admin: false,
 		}
 
 		// Save the model.
@@ -138,12 +138,12 @@ func TestUser(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if name != user.name {
-			t.Errorf("Expected %v, got %v", user.name, name)
+		if name != user.Name {
+			t.Errorf("Expected %v, got %v", user.Name, name)
 		}
 
-		if admin != user.admin {
-			t.Errorf("Expected %v, got %v", user.admin, admin)
+		if admin != user.Admin {
+			t.Errorf("Expected %v, got %v", user.Admin, admin)
 		}
 	})
 }

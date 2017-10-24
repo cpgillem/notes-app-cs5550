@@ -8,10 +8,10 @@ import (
 
 // User represents a user of the site.
 type User struct {
-	db *sql.DB
-	id int64
-	name string
-	admin bool
+	Db *sql.DB
+	Id int64
+	Name string
+	Admin bool
 }
 
 // NewUser creates a new user from scratch.
@@ -19,7 +19,7 @@ func NewUser(db *sql.DB) *User {
 	// Create a new user with defaults. This will not be saved if any required
 	// fields are still nil.
 	return &User {
-		db: db,
+		Db: db,
 	}
 }
 
@@ -31,7 +31,7 @@ func LoadUser(db *sql.DB, id int64) (user *User, err error) {
 
 	// Use the database connection to retrieve the user. If the user does not
 	// exist, an error will be returned instead.
-	err = db.QueryRow("SELECT * FROM users WHERE id = ?", id).Scan(&user.id, &user.name, &user.admin)
+	err = db.QueryRow("SELECT * FROM users WHERE id = ?", id).Scan(&user.Id, &user.Name, &user.Admin)
 
 	if err != nil {
 		user = nil
@@ -44,15 +44,15 @@ func LoadUser(db *sql.DB, id int64) (user *User, err error) {
 func (u *User) Save() error {
 	err := error(nil)
 	
-	if u.id != 0 {
+	if u.Id != 0 {
 		// Update a user if they already exist.
-		_, err = u.db.Exec(`UPDATE users SET name=?, admin=? WHERE id=?`, u.name, u.admin, u.id)
+		_, err = u.Db.Exec(`UPDATE users SET name=?, admin=? WHERE id=?`, u.Name, u.Admin, u.Id)
 	} else {
 		// If a user doesn't exist yet, insert a new record and save the
 		// new ID.
-		res, err := u.db.Exec(`INSERT INTO users (name, admin) VALUES (?, ?)`, u.name, u.admin)
+		res, err := u.Db.Exec(`INSERT INTO users (name, admin) VALUES (?, ?)`, u.Name, u.Admin)
 		if err == nil { 
-			u.id, err = res.LastInsertId()
+			u.Id, err = res.LastInsertId()
 		}
 	}
 
