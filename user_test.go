@@ -31,8 +31,8 @@ func TestLoadUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.Id != 1 {
-		t.Errorf("Expected id 1, got %v", user.Id)
+	if user.ID != 1 {
+		t.Errorf("Expected id 1, got %v", user.ID)
 	}
 
 	if user.Name != "test" {
@@ -66,7 +66,7 @@ func TestSaveNew(t *testing.T) {
 	var name string
 	var admin bool
 
-	err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.Id).Scan(&name, &admin)
+	err = testDB.QueryRow("SELECT name, admin FROM users WHERE id=?", user.ID).Scan(&name, &admin)
 
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +99,7 @@ func TestSave(t *testing.T) {
 	// Create a corresponding model manually.
 	user := User {
 		Db: testDB,
-		Id: id,
+		ID: id,
 		Name: "name-updated",
 		Admin: false,
 	}
