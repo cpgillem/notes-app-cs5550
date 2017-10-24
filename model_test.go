@@ -1,32 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"testing"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
-func setup() *sql.DB {
-	// Open a database connection. This presumes that the testing database has
-	// been created and that the user has access.
-	newDB, err := sql.Open("mysql", "notes_app:notes_app@/notes_app_testing")
-	if err != nil {
-		panic(err)
-	}
-	SetUpDB(newDB)
-
-	return newDB
-}
-
-func teardown(testDB *sql.DB) {
-	defer testDB.Close()
-	TearDownDB(testDB)
-}
-
 func TestNewUser(t *testing.T) {
-	testDB := setup()
-	defer teardown(testDB)
+	testDB := SetUpDbTest()
+	defer TearDownDbTest(testDB)
 
 	user := NewUser(testDB)
 	if user.Db != testDB {
@@ -35,8 +15,8 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestLoadUser(t *testing.T) {
-	testDB := setup()
-	defer teardown(testDB)
+	testDB := SetUpDbTest()
+	defer TearDownDbTest(testDB)
 
 	// Manually create a user to test with.
 	_, err := testDB.Exec("INSERT INTO users (id, name, admin) VALUES (1, 'test', false)")
@@ -65,8 +45,8 @@ func TestLoadUser(t *testing.T) {
 }
 
 func TestSaveNew(t *testing.T) {
-	testDB := setup()
-	defer teardown(testDB)
+	testDB := SetUpDbTest()
+	defer TearDownDbTest(testDB)
 
 	// Test one with all values defined.
 	user := User {
@@ -102,8 +82,8 @@ func TestSaveNew(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	testDB := setup()
-	defer teardown(testDB)
+	testDB := SetUpDbTest()
+	defer TearDownDbTest(testDB)
 
 	// Create a sample user and retrieve its id.
 	res, err := testDB.Exec("INSERT INTO users (name, admin) VALUES ('test', true)")
