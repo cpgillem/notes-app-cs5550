@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"testing"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -22,4 +24,10 @@ func SetUpDbTest() *sql.DB {
 func TearDownDbTest(testDB *sql.DB) {
 	defer testDB.Close()
 	TearDownDB(testDB)
+}
+
+func AssertEqual(expected interface{}, received interface{}, t *testing.T) {
+	if expected != received {
+		t.Errorf("Expected %v, received %v.", expected, received)
+	}
 }
