@@ -11,33 +11,6 @@ type testModel struct {
 	Admin bool
 }
 
-/*
-func (u *testModel) Load() error {
-	return u.Get(map[string]*interface{}{
-		"name": &u.Name,
-		"admin": &u.Admin,
-		"age": &u.Age,
-	})
-	
-}
-
-func (u *testModel) Save() error {
-	if u.ID != 0 {
-		return u.Update(map[string]interface{}{
-			"name": u.Name,
-			"admin": u.Admin,
-			"age": u.Age,
-		})
-	} else {
-		return u.Insert(map[string]interface{}{
-			"name": u.Name,
-			"admin": u.Admin,
-			"age": u.Age,
-		})
-	}
-}
-*/
-
 func TestResourceLoad(t *testing.T) {
 	db := SetUpDbTest()
 	defer TearDownDbTest(db)
