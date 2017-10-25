@@ -52,8 +52,8 @@ func TestResourceLoad(t *testing.T) {
 	AssertEqual(true, user.Admin, t)
 }
 
-func TestResourceQuery(t *testing.T) {
+func TestResourceSave(t *testing.T) {
 }
 
-func TestResourceSave(t *testing.T) {
+func TestResourceDelete(t *testing.T) {
 }
