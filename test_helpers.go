@@ -31,3 +31,9 @@ func AssertEqual(expected interface{}, received interface{}, t *testing.T) {
 		t.Errorf("Expected %v, received %v.", expected, received)
 	}
 }
+
+func AssertUnequal(unexpected interface{}, received interface{}, t *testing.T) {
+	if unexpected == received {
+		t.Errorf("Did not expect %v to equal %v", received, unexpected)
+	}
+}
