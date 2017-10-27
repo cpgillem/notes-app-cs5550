@@ -26,13 +26,17 @@ func (r *Resource) Load() error {
 	var cols []string
 	var ptrs []interface{}
 
+	// Columns is a map of string keys (column names) to pointers (to fields).
 	for k, v := range r.Columns {
 		cols = append(cols, k)
 		ptrs = append(ptrs, v)
 	}
 
+	// Build a query that selects the columns with the names stored in Columns.
 	query := fmt.Sprintf("SELECT %v FROM %v WHERE id=?", strings.Join(cols, ", "), r.Table)
 
+	// Query the database and store all data into the pointers corresponding
+	// to the database columns desired.
 	err := r.DB.QueryRow(query, r.ID).Scan(ptrs...)
 
 	return err
