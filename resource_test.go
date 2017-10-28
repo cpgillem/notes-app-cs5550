@@ -144,4 +144,47 @@ func TestResourceSyncExisting(t *testing.T) {
 }
 
 func TestResourceDelete(t *testing.T) {
+	db := SetUpDbTest()
+	defer TearDownDbTest(db)
+
+	// Insert a model manually.
+	res, err := db.Exec("INSERT INTO users (name, admin) VALUES ('test', false)")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Get the ID and create a model.
+	id, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user := testModel {
+		Resource: Resource {
+			DB: db,
+			ID: id,
+			Table: "users",
+		},
+		Name: "test",
+		Admin: false,
+	}
+
+	// Delete the user
+	err = user.Delete()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The model's ID should have been reset to 0.
+	if user.ID != 0 {
+		t.Errorf("Expected ID to be 0, received %v.", user.ID)
+	}
+
+	// Make sure the user does not exist in the database.
+	rows, err := db.Query("SELECT * FROM users WHERE id=?", id)
+	defer rows.Close()
+
+	for rows.Next() {
+		t.Fatalf("A row was found for ID %v.", id)
+	}
 }
