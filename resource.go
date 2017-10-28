@@ -20,18 +20,7 @@ type Resource struct {
 	Columns map[string]interface{}
 }
 
-// Load runs a select statement on the database and scans the row data into
-// the variables pointed to from Columns.
-func (r *Resource) Load() error {
-	var cols []string
-	var ptrs []interface{}
-
-	// Columns is a map of string keys (column names) to pointers (to fields).
-	for k, v := range r.Columns {
-		cols = append(cols, k)
-		ptrs = append(ptrs, v)
-	}
-
+func (r *Resource) Select(cols []string, ptrs ...interface{}) error {
 	// Build a query that selects the columns with the names stored in Columns.
 	query := fmt.Sprintf("SELECT %v FROM %v WHERE id=?", strings.Join(cols, ", "), r.Table)
 
@@ -42,11 +31,35 @@ func (r *Resource) Load() error {
 	return err
 }
 
-// Save runs an insert or update statement on the database, depending on
-// whether the resource already exists. If it didn't previously, the ID is
-// stored after the insert statement is run.
-func (r *Resource) Save() error {
-	return nil
+func (r *Resource) Sync(cols []string, vals ...interface{}) error {
+	var err error
+	var query string
+	
+	// If the resource does not exist, the query will be an INSERT statement.
+	// If it already exists, it will be an UPDATE statement.
+	if r.ID == 0 {
+		query = fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)", r.Table, strings.Join(cols, ", "), "?" + strings.Repeat(", ?", len(vals) - 1))
+		res, err := r.DB.Exec(query, vals...)
+		if err != nil {
+			return err
+		}
+
+		// Give the resource the proper ID.
+		r.ID, err = res.LastInsertId()
+	} else {
+		var updateCols []string
+		for _, c := range cols {
+			updateCols = append(updateCols, c + "=?")
+		}
+
+		query = fmt.Sprintf("UPDATE %v SET (%v) WHERE id=?", r.Table, strings.Join(updateCols, ", "))
+		_, err = r.DB.Exec(query, (append(vals, r.ID))...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 // Delete removes the resource from the database, if it exists. The ID field
