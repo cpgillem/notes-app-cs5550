@@ -23,7 +23,7 @@ func (m *testModel) Save() error {
 	return err
 }
 
-func TestResourceLoad(t *testing.T) {
+func TestResourceSelect(t *testing.T) {
 	db := SetUpDbTest()
 	defer TearDownDbTest(db)
 
@@ -64,44 +64,83 @@ func TestResourceLoad(t *testing.T) {
 	AssertEqual(true, user.Admin, t)
 }
 
-func TestResourceSave(t *testing.T) {
+func TestResourceSyncNew(t *testing.T) {
 	db := SetUpDbTest()
 	defer TearDownDbTest(db)
 
-	// Test saving a new resource that doesn't yet exist in the database.
-	t.Run("New", func(t *testing.T) {
-		user := testModel {
-			Resource: Resource {
-				DB: db,
-				Table: "users",
-			},
-		}
+	user := testModel {
+		Resource: Resource {
+			DB: db,
+			Table: "users",
+		},
+	}
 
-		// Set the values for the user.
-		user.Name = "admin"
-		user.Admin = true
+	// Set the values for the user.
+	user.Name = "admin"
+	user.Admin = true
 
-		// Save the resource.
-		err := user.Save()
-		if err != nil {
-			t.Fatal(err)
-		}
+	// Save the resource.
+	err := user.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Make sure the id was set after storing the model.
-		AssertUnequal(0, user.ID, t)
+	// Make sure the id was set after storing the model.
+	AssertUnequal(0, user.ID, t)
 
-		// Query the database for the model.
-		var retrievedName string
-		var retrievedAdmin bool
-		err = db.QueryRow("SELECT name, admin FROM users WHERE id=?", user.ID).Scan(&retrievedName, &retrievedAdmin)
-		if err != nil {
-			t.Fatal(err)
-		}
+	// Query the database for the model.
+	var retrievedName string
+	var retrievedAdmin bool
+	err = db.QueryRow("SELECT name, admin FROM users WHERE id=?", user.ID).Scan(&retrievedName, &retrievedAdmin)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Make sure the values are correct.
-		AssertEqual("admin", retrievedName, t)
-		AssertEqual(true, retrievedAdmin, t)
-	})
+	// Make sure the values are correct.
+	AssertEqual("admin", retrievedName, t)
+	AssertEqual(true, retrievedAdmin, t)
+}
+
+func TestResourceSyncExisting(t *testing.T) {
+	db := SetUpDbTest()
+	defer TearDownDbTest(db)
+
+	// Insert the data manually.
+	res, err := db.Exec("INSERT INTO users (name, admin) VALUES ('nonadmin', false)")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Get the ID.
+	newId, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make a model.
+	user := testModel {
+		Resource: Resource {
+			DB: db,
+			Table: "users",
+			ID: newId,
+		},
+		Name: "admin",
+		Admin: true,
+	}
+
+	// Sync the model.
+	err = user.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure the database was updated accordingly.
+	var retrievedName string
+	var retrievedAdmin bool
+	err = db.QueryRow("SELECT name, admin FROM users WHERE id=?", user.ID).Scan(&retrievedName, &retrievedAdmin)
+
+	AssertEqual("admin", retrievedName, t)
+	AssertEqual(true, retrievedAdmin, t)
 }
 
 func TestResourceDelete(t *testing.T) {

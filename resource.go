@@ -8,6 +8,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// Model implements a function for saving to the database, and a function for
+// loading from it. They may use the helper methods Select, Sync, or Delete on
+// a resource, as needed.
+type Model interface {
+	Save() error
+	Load() error
+}
+
 // Resource defines the data common to all resources, including the database
 // connection, ID, and table name.
 type Resource struct {
@@ -39,6 +47,7 @@ func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 	// If it already exists, it will be an UPDATE statement.
 	if r.ID == 0 {
 		query = fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)", r.Table, strings.Join(cols, ", "), "?" + strings.Repeat(", ?", len(vals) - 1))
+
 		res, err := r.DB.Exec(query, vals...)
 		if err != nil {
 			return err
@@ -52,8 +61,8 @@ func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 			updateCols = append(updateCols, c + "=?")
 		}
 
-		query = fmt.Sprintf("UPDATE %v SET (%v) WHERE id=?", r.Table, strings.Join(updateCols, ", "))
-		_, err = r.DB.Exec(query, (append(vals, r.ID))...)
+		query = fmt.Sprintf("UPDATE %v SET %v WHERE id=%v", r.Table, strings.Join(updateCols, ", "), r.ID)
+		_, err = r.DB.Exec(query, vals...)
 		if err != nil {
 			return err
 		}
