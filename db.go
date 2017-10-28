@@ -52,9 +52,26 @@ func SetUpDB(db *sql.DB) error {
 }
 
 // TearDownDB clears the database of all tables that the app uses.
-func TearDownDB(db *sql.DB) {
-	db.Exec("DROP TABLE IF EXISTS users")
-	db.Exec("DROP TABLE IF EXISTS notes")
-	db.Exec("DROP TABLE IF EXISTS tags")
-	db.Exec("DROP TABLE IF EXISTS note_tag")
+func TearDownDB(db *sql.DB) error {
+	_, err := db.Exec("DROP TABLE IF EXISTS users")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("DROP TABLE IF EXISTS notes")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("DROP TABLE IF EXISTS tags")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("DROP TABLE IF EXISTS note_tag")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
