@@ -30,6 +30,22 @@ func (n *Note) Save() error {
 	return n.Sync([]string{"title", "content", "time", "user_id"}, n.Title, n.Content, n.Time, n.UserID)
 }
 
+func (n *Note) User() (u User, err error) {
+	// Create an unloaded model for the user.
+	u = User {
+		Resource: Resource {
+			ID: n.UserID,
+			DB: n.DB,
+			Table: "users",
+		},
+	}
+
+	// Define err as the result of loading the user from their ID.
+	err = u.Load()
+
+	return
+}
+
 type Tag struct {
 	Resource
 	Title string
