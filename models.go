@@ -1,7 +1,13 @@
 package main
 
+import (
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
 type User struct {
-	Resource
+	Resource 
 	Name string
 	Admin bool
 }
@@ -14,11 +20,43 @@ func (u *User) Save() error {
 	return u.Sync([]string{"name", "admin"}, u.Name, u.Admin)
 }
 
+func (u *User) Notes() (ns []Note, err error) {
+	rows, err := u.DB.Query("SELECT id FROM notes WHERE user_id = ?", u.ID)
+	ns = []Note{}
+
+	defer rows.Close()
+	for rows.Next() {
+		var nID int64
+
+		err := rows.Scan(&nID)
+		if err != nil {
+			continue
+		}
+
+		n := Note {
+			Resource: Resource {
+				ID: nID,
+				DB: u.DB,
+				Table: "notes",
+			},
+		}
+
+		err = n.Load()
+		if err != nil {
+			continue
+		}
+
+		ns = append(ns, n)
+	}
+
+	return 
+}
+
 type Note struct {
 	Resource
 	Title string
-	Content string
-	Time string
+	Content sql.NullString
+	Time sql.NullString
 	UserID int64
 }
 
@@ -27,7 +65,7 @@ func (n *Note) Load() error {
 }
 
 func (n *Note) Save() error {
-	return n.Sync([]string{"title", "content", "time", "user_id"}, n.Title, n.Content, n.Time, n.UserID)
+	return n.Sync([]string{"title", "content", "time", "user_id"}, n.Title, n.Content.String, n.Time.String, n.UserID)
 }
 
 func (n *Note) User() (u User, err error) {
