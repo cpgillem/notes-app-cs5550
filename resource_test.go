@@ -112,7 +112,7 @@ func TestResourceSyncExisting(t *testing.T) {
 	}
 
 	// Get the ID.
-	newId, err := res.LastInsertId()
+	newID, err := res.LastInsertId()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestResourceSyncExisting(t *testing.T) {
 		Resource: Resource {
 			DB: db,
 			Table: "users",
-			ID: newId,
+			ID: newID,
 		},
 		Name: "admin",
 		Admin: true,

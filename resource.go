@@ -28,6 +28,9 @@ type Resource struct {
 	Columns map[string]interface{}
 }
 
+// Select runs a SELECT statement on the database.
+// cols is a slice of strings representing what columns you want to pull.
+// ptrs is a slice of pointers to variables in which to store the results.
 func (r *Resource) Select(cols []string, ptrs ...interface{}) error {
 	// Build a query that selects the columns with the names stored in Columns.
 	query := fmt.Sprintf("SELECT %v FROM %v WHERE id=?", strings.Join(cols, ", "), r.Table)
@@ -39,6 +42,9 @@ func (r *Resource) Select(cols []string, ptrs ...interface{}) error {
 	return err
 }
 
+// Sync either inserts a new record into the database or updates an existing one.
+// cols is a slice of strings representing which columns you would like to save to.
+// vals is a slice of variables that contain data to save.
 func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 	var err error
 	var query string
