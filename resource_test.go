@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"database/sql"
 )
 
 // A generic model that makes use of a Resource as an anonymous field.
@@ -21,6 +22,20 @@ func (m *testModel) Save() error {
 	err := m.Sync([]string{"name", "admin"}, m.Name, m.Admin)
 
 	return err
+}
+
+type testNoteModel struct {
+	Resource
+	Title string
+	Content sql.NullString
+}
+
+func (m *testNoteModel) Load() error {
+	return m.Select([]string{"title", "content"}, &m.Title, &m.Content)
+}
+
+func (m *testNoteModel) Save() error {
+	return m.Sync([]string{"title", "content"}, m.Title, m.Content)
 }
 
 func TestResourceSelect(t *testing.T) {
@@ -187,4 +202,38 @@ func TestResourceDelete(t *testing.T) {
 	for rows.Next() {
 		t.Fatalf("A row was found for ID %v.", id)
 	}
+}
+
+func TestResourceWithNulls(t *testing.T) {
+	db := SetUpDbTest()
+	defer TearDownDbTest(db)
+
+	// Create a new resource and give it null content.
+	res, err := db.Exec("INSERT INTO notes (title, user_id) VALUES ('test', 1)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	id, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a model for this resource.
+	note := testNoteModel {
+		Resource: Resource {
+			ID: id,
+			DB: db,
+			Table: "notes",
+		},
+	}
+
+	// Try to load its data.
+	err = note.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	AssertEqual("test", note.Title, t)
+	AssertEqual(false, note.Content.Valid, t)
 }
