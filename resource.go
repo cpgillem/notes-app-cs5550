@@ -20,19 +20,14 @@ type Model interface {
 // connection, ID, and table name.
 type Resource struct {
 	DB *sql.DB
-	ID int64
+	ID int64 `json:"id"`
 	Table string
-	// Columns is a map of strings to pointers, which are the final locations of 
-	// each value returned from the database. Usually these pointers will reference
-	// fields of a struct.
-	Columns map[string]interface{}
 }
 
 // Select runs a SELECT statement on the database.
 // cols is a slice of strings representing what columns you want to pull.
 // ptrs is a slice of pointers to variables in which to store the results.
 func (r *Resource) Select(cols []string, ptrs ...interface{}) error {
-	// Build a query that selects the columns with the names stored in Columns.
 	query := fmt.Sprintf("SELECT %v FROM %v WHERE id=?", strings.Join(cols, ", "), r.Table)
 
 	// Query the database and store all data into the pointers corresponding

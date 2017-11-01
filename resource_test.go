@@ -63,11 +63,6 @@ func TestResourceSelect(t *testing.T) {
 		},
 	}
 
-	user.Columns = map[string]interface{} {
-		"name": &user.Name,
-		"admin": &user.Admin,
-	}
-
 	// Load the rest of the resource's data.
 	err = user.Load()
 	if err != nil {
