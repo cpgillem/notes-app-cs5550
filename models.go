@@ -8,8 +8,25 @@ import (
 
 type User struct {
 	Resource 
-	Name string
-	Admin bool
+	Name string `json:"name"`
+	Admin bool `json:"admin"`
+}
+
+func NewUser(db *sql.DB) (u User) {
+	return User {
+		Resource: Resource {
+			DB: db,
+			Table: "users",
+		},
+	}
+}
+
+func LoadUser(id int64, db *sql.DB) (u User, err error) {
+	u = NewUser(db)
+	u.ID = id
+	err = u.Load()
+
+	return
 }
 
 func (u *User) Load() error {
