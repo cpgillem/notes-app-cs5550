@@ -1,9 +1,7 @@
-package main
+package csnotes
 
 import (
 	"database/sql"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -84,12 +82,6 @@ func AssertEqual(expected interface{}, received interface{}, t *testing.T) {
 func AssertUnequal(unexpected interface{}, received interface{}, t *testing.T) {
 	if unexpected == received {
 		t.Errorf("Did not expect %v to equal %v", received, unexpected)
-	}
-}
-
-func AssertSuccessCode(recorder *httptest.ResponseRecorder, t *testing.T) {
-	if status := recorder.Code; status != http.StatusOK {
-		t.Errorf("Wrong status code. Got %v want %v", status, http.StatusOK)
 	}
 }
 
