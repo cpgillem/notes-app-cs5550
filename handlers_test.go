@@ -31,7 +31,7 @@ func TestGetIndex(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	// Mock some data.
-	db, ids := SeededTestDB()
+	db, ids, _ := SeededTestDB()
 	defer TearDownDbTest(db)
 
 	router := mux.NewRouter()

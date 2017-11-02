@@ -31,6 +31,12 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+		} else if os.Args[1] == "seed" {
+			fmt.Println("Seeding DB...")
+			_, err = csnotes.SeedDB(db)
+			if err != nil {
+				panic(err)
+			}
 		} else {
 			fmt.Println(syntax)
 		}

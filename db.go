@@ -74,3 +74,81 @@ func TearDownDB(db *sql.DB) error {
 
 	return nil
 }
+
+func SeedDB(db *sql.DB) (ids map[string]int64, err error) {
+	ids = map[string]int64{}
+
+	// Users
+	res, err := db.Exec("INSERT INTO users (name, admin) VALUES (?, ?)", "nonadmin", false)
+	if err != nil {
+		return
+	}
+	ids["user.nonadmin"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	res, err = db.Exec("INSERT INTO users (name, admin) VALUES (?, ?)", "admin", true)
+	if err != nil {
+		return
+	}
+	ids["user.admin"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	// Notes
+	res, err = db.Exec("INSERT INTO notes (title, content, time, user_id) VALUES (?, ?, ?, ?)",
+		"note1", "content", "2017-01-01 12:00", ids["user.nonadmin"])
+	if err != nil {
+		return
+	}
+	ids["note.note1"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	res, err = db.Exec("INSERT INTO notes (title, content, time, user_id) VALUES (?, ?, ?, ?)",
+		"note2", "content", "2017-02-01 12:00", ids["user.nonadmin"])
+	if err != nil {
+		return
+	}
+	ids["note.note2"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	// Tags
+	res, err = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag1")
+	if err != nil {
+		return
+	}
+	ids["tag.tag1"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	res, err = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag2")
+	if err != nil {
+		return
+	}
+	ids["tag.tag2"], err = res.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	// Attach tags to notes. Note 1 will be tagged with tag 1, etc.
+	_, err = db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
+		ids["note.note1"], ids["tag.tag1"])
+	if err != nil {
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
+		ids["note.note2"], ids["tag.tag2"])
+	if err != nil {
+		return
+	}
+
+	return
+}

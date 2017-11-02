@@ -36,41 +36,11 @@ func TearDownDbTest(testDB *sql.DB) {
 // e.g. ids["user.nonadmin"] => 1
 //   or ids["note.note1"] => 2
 //   or ids["tag.tag1"] => 3
-func SeededTestDB() (db *sql.DB, ids map[string]int64) {
+func SeededTestDB() (db *sql.DB, ids map[string]int64, err error) {
 	db = SetUpDbTest()
-	ids = map[string]int64{}
+	ids, err = SeedDB(db)
 
-	// Users
-	res, _ := db.Exec("INSERT INTO users (name, admin) VALUES (?, ?)", "nonadmin", false)
-	ids["user.nonadmin"], _ = res.LastInsertId()
-
-	res, _ = db.Exec("INSERT INTO users (name, admin) VALUES (?, ?)", "admin", true)
-	ids["user.admin"], _ = res.LastInsertId()
-
-	// Notes
-	res, _ = db.Exec("INSERT INTO notes (title, content, time, user_id) VALUES (?, ?, ?, ?)",
-		"note1", "content", "2017-01-01 12:00", ids["user.nonadmin"])
-	ids["note.note1"], _ = res.LastInsertId()
-
-	res, _ = db.Exec("INSERT INTO notes (title, content, time, user_id) VALUES (?, ?, ?, ?)",
-		"note2", "content", "2017-02-01 12:00", ids["user.nonadmin"])
-	ids["note.note2"], _ = res.LastInsertId()
-
-	// Tags
-	res, _ = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag1")
-	ids["tag.tag1"], _ = res.LastInsertId()
-
-	res, _ = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag2")
-	ids["tag.tag2"], _ = res.LastInsertId()
-
-	// Attach tags to notes. Note 1 will be tagged with tag 1, etc.
-	db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
-		ids["note.note1"], ids["tag.tag1"])
-
-	db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
-		ids["note.note2"], ids["tag.tag2"])
-
-	return 
+	return
 }
 
 func AssertEqual(expected interface{}, received interface{}, t *testing.T) {
