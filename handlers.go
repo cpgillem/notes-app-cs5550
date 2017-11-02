@@ -1,7 +1,6 @@
 package csnotes
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,14 +10,14 @@ import (
 )
 
 // GetIndex handles requests for the main page of the site.
-func GetIndex(db *sql.DB) http.HandlerFunc {
+func GetIndex(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "test")
 	}
 }
 
 // GetUser retrieves a user and their data by id.
-func GetUser(db *sql.DB) http.HandlerFunc {
+func GetUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -31,8 +30,7 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 
 			// Send the user struct with the password redacted.
 			// The id should be included along with the rest of the variables.
-			// TODO: DB can't be a global variable, this makes testing impossible.
-			u, err := LoadUser(int64(id), db)
+			u, err := LoadUser(int64(id), context.DB)
 			if err != nil {
 				// Return a 404.
 				http.Error(w, "Could not find user.", http.StatusNotFound)

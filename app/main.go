@@ -33,10 +33,13 @@ func main() {
 		panic(err)
 	}
 
+	// Create a context variable to pass around.
+	context := csnotes.Context {
+		DB: db,
+	}
+
 	// Define the routes.
-	router := mux.NewRouter()
-	router.HandleFunc("/", csnotes.GetIndex(db))
-	router.HandleFunc("/user/{id}", csnotes.GetUser(db))
+	router := csnotes.CreateRouter(context)
 
 	// Define a server object.
 	server := &http.Server {

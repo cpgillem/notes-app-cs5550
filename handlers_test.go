@@ -34,8 +34,12 @@ func TestGetUser(t *testing.T) {
 	db, ids, _ := SeededTestDB()
 	defer TearDownDbTest(db)
 
+	context := Context {
+		DB: db,
+	}
+
 	router := mux.NewRouter()
-	router.HandleFunc("/{id}", http.HandlerFunc(GetUser(db)))
+	router.HandleFunc("/{id}", http.HandlerFunc(GetUser(&context)))
 	server := httptest.NewServer(router)
 	defer server.Close()
 
