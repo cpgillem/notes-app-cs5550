@@ -10,7 +10,6 @@ import (
 
 	"github.com/cpgillem/csnotes"
 
-	"github.com/gorilla/mux"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -39,7 +38,7 @@ func main() {
 	}
 
 	// Define the routes.
-	router := csnotes.CreateRouter(context)
+	router := csnotes.CreateRouter(&context)
 
 	// Define a server object.
 	server := &http.Server {

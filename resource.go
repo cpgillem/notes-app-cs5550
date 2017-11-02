@@ -19,9 +19,9 @@ type Model interface {
 // Resource defines the data common to all resources, including the database
 // connection, ID, and table name.
 type Resource struct {
-	DB *sql.DB
+	DB *sql.DB `json:"-"`
 	ID int64 `json:"id"`
-	Table string
+	Table string `json:"-"`
 }
 
 // Select runs a SELECT statement on the database.
