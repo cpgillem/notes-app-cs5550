@@ -131,6 +131,47 @@ func (n *Note) User() (u User, err error) {
 	return
 }
 
+func (n *Note) Tags() (ts []Tag, err error) {
+	// Create empty slice of tags.
+	ts = []Tag{}
+
+	// Query for tags.
+	rows, err := n.DB.Query("SELECT tag_id FROM note_tag WHERE note_id=?", n.ID)
+	defer rows.Close()
+
+	// If there was an error in the query, return nothing.
+	if err != nil {
+		return ts, err
+	}
+
+	for rows.Next() {
+		var tID int64
+		rows.Scan(&tID)
+		if err != nil {
+			// Skip this row if there was a problem scanning it.
+			continue
+		}
+
+		t := Tag {
+			Resource: Resource {
+				ID: tID,
+				DB: n.DB,
+				Table: "tags",
+			},
+		}
+		// TODO: Implement lazy-loading so this isn't done every time
+		err = t.Load()
+		if err != nil {
+			continue
+		}
+
+		// Append the model.
+		ts = append(ts, t)
+	}
+
+	return
+}
+
 type Tag struct {
 	Resource
 	Title string
@@ -151,6 +192,11 @@ func (t *Tag) Notes() (ns []Note, err error) {
 	// Query for notes with this tag's ID.
 	rows, err := t.DB.Query("SELECT note_id FROM note_tag WHERE tag_id=?", t.ID)
 	defer rows.Close()
+
+	// If there was an error in the query, return nothing.
+	if err != nil {
+		return ns, err
+	}
 
 	for rows.Next() {
 		// Get the ID.

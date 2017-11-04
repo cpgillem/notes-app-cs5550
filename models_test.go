@@ -12,7 +12,7 @@ func TestNoteUser(t *testing.T) {
 	defer TearDownDbTest(db)
 
 	// Insert a user.
-	res, err := db.Exec("INSERT INTO users (name, admin) VALUES ('test', false)")
+	res, err := db.Exec("INSERT INTO users (username, admin) VALUES ('test', false)")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestNoteUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	AssertEqual("test", user.Name, t)
+	AssertEqual("test", user.Username, t)
 	AssertEqual(false, user.Admin, t)
 }
 
@@ -67,7 +67,7 @@ func TestUserNotes(t *testing.T) {
 			DB: db,
 			Table: "users",
 		},
-		Name: "name",
+		Username: "name",
 		Admin: false,
 	}
 
@@ -129,4 +129,31 @@ func TestTagNotes(t *testing.T) {
 
 	AssertEqual("title1", ns[0].Title, t)
 	AssertEqual("title2", ns[1].Title, t)
+}
+
+func TestNoteTags(t *testing.T) {
+	db, ids, err := SeededTestDB()
+	defer TearDownDbTest(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a mock model.
+	note := Note {
+		Resource: Resource {
+			ID: ids["note.note1"],
+			DB: db,
+			Table: "notes",
+		},
+	}
+
+	// Retrieve the note model's tags.
+	ts, err := note.Tags()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	AssertEqual(2, len(ts), t)
+	AssertEqual("tag1", ts[0].Title, t)
+	AssertEqual("tag2", ts[1].Title, t)
 }
