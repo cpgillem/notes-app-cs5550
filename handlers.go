@@ -5,9 +5,68 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/dgrijalva/jwt-go"
 )
+
+// GetLogin should take the user's credentials and create a
+// JSON web token if the authentication was successful.
+func PostLogin(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		
+		// Validate the data.
+		if len(username) == 0 {
+			http.Error(w, "No username.", http.StatusInternalServerError)
+			return
+		}
+
+		if len(password) == 0 {
+			http.Error(w, "No password.", http.StatusInternalServerError)
+			return
+		}
+
+		// Validate the credentials against the database.
+		user, err := ValidateUser(username, password, context.DB)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Could not authenticate user.", http.StatusForbidden)
+			return
+		}
+
+		// Create a token.
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims {
+			"iss": "admin",
+			"exp": time.Now().Add(time.Minute * 20).Unix(),
+			// TODO: Possibly use a generated struct that contains all necessary data
+			"CustomUserInfo": struct {
+				ID int64
+			} {user.ID},
+		})
+
+		tokenString, err := token.SignedString(context.SignKey)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		response := struct {
+			Token string `json:"token"`
+		} {tokenString}
+
+		// Turn the token into a json string.
+		json, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(json)
+	}
+}
 
 // GetIndex handles requests for the main page of the site.
 func GetIndex(context *Context) http.HandlerFunc {
@@ -47,3 +106,28 @@ func GetUser(context *Context) http.HandlerFunc {
 	}
 }
 
+func PostUser(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		name := r.FormValue("name")
+		password := r.FormValue("password")
+
+		// Validate the input data
+		if len(name) < 8 {
+			// TODO: Error message in response
+			return
+		}
+
+		if len(password) < 8 {
+			return
+		}
+
+		// Store the new user.
+
+	}
+}
+
+func GetNote(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "logged in")
+	}
+}
