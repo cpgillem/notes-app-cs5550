@@ -15,3 +15,8 @@ A simplified Google-keep-like notes app for CS 5550 (Networks).
 - [Building Web Apps with Go](https://codegangsta.gitbooks.io/building-web-apps-with-go/content/)
 - [Interface With Your Database in Go Tests](https://robots.thoughtbot.com/interface-with-your-database-in-go)
 - [Go unit test setup and teardown](https://blog.karenuorteva.fi/go-unit-test-setup-and-teardown-db1601a796f2)
+- (https://stackoverflow.com/questions/25218903/how-are-people-managing-authentication-in-go)
+- https://www.youtube.com/watch?v=dgJFeqeXVKw
+- https://gist.github.com/thealexcons/4ecc09d50e6b9b3ff4e2408e910beb22
+- https://crackstation.net/hashing-security.htm
+- https://elithrar.github.io/article/generating-secure-random-numbers-crypto-rand/
