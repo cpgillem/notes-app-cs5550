@@ -80,10 +80,16 @@ func TestPostUser(t *testing.T) {
 	defer server.Close()
 
 	// Create and send a request.
-	res, err := http.PostForm(server.URL, url.Values{"name": {"test"}, "password": {"test"}})
+	_, err := http.PostForm(server.URL, url.Values{"username": {"newtestuser"}, "password": {"testpassword"}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	defer res.Body.Close()
+	// Make sure the user was inserted into the database.
+	row := db.QueryRow("SELECT id FROM users WHERE username='newtestuser'")
+	var id int64
+	err = row.Scan(&id)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

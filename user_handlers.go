@@ -108,26 +108,35 @@ func GetUser(context *Context) http.HandlerFunc {
 
 func PostUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
-		name := r.FormValue("name")
+		username := r.FormValue("username")
 		password := r.FormValue("password")
 
 		// Validate the input data
-		if len(name) < 8 {
-			// TODO: Error message in response
+		if len(username) < 8 {
+			// TODO: Validation should be in 200 response.
+			http.Error(w, "Username must be longer than 8 characters.", http.StatusInternalServerError)
 			return
 		}
 
 		if len(password) < 8 {
+			http.Error(w, "Password must be longer than 8 characters.", http.StatusInternalServerError)
 			return
 		}
 
-		// Store the new user.
+		// Create a user model.
+		u := NewUser(context.DB)
+		u.Username = username
+		err := u.Save()
+		if err != nil {
+			http.Error(w, "Could not save new user.", http.StatusInternalServerError)
+			return
+		}
 
-	}
-}
-
-func GetNote(context *Context) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "logged in")
+		// Hash and store the user's password.
+		err = StorePassword(u.ID, password, context.DB)
+		if err != nil {
+			http.Error(w, "Could not store password.", http.StatusInternalServerError)
+			return
+		}
 	}
 }
