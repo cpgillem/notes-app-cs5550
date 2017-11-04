@@ -183,9 +183,21 @@ func SeedDB(db *sql.DB) (ids map[string]int64, err error) {
 		return
 	}
 
-	// Attach tags to notes. Note 1 will be tagged with tag 1, etc.
+	// Attach tags to notes.
 	_, err = db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
 		ids["note.note1"], ids["tag.tag1"])
+	if err != nil {
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
+		ids["note.note1"], ids["tag.tag2"])
+	if err != nil {
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)",
+		ids["note.note2"], ids["tag.tag1"])
 	if err != nil {
 		return
 	}
