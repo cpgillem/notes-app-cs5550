@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -62,4 +63,27 @@ func TestGetUser(t *testing.T) {
 
 	AssertContains(str, "nonadmin", t)
 	AssertContains(str, "false", t)
+}
+
+func TestPostUser(t *testing.T) {
+	// Mock data.
+	db := SetUpDbTest()
+	defer TearDownDbTest(db)
+
+	context := Context {
+		DB: db,
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/", http.HandlerFunc(PostUser(&context)))
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	// Create and send a request.
+	res, err := http.PostForm(server.URL, url.Values{"name": {"test"}, "password": {"test"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer res.Body.Close()
 }
