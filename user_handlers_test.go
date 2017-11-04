@@ -1,6 +1,8 @@
 package csnotes
 
 import (
+	"bytes"
+	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -92,4 +94,43 @@ func TestPostUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	// Mock data.
+	db, ids, _ := SeededTestDB()
+	defer TearDownDbTest(db)
+
+	// Create surrounding context.
+	context := Context {
+		DB: db,
+	}
+	router := mux.NewRouter()
+	router.HandleFunc("/{id}", http.HandlerFunc(UpdateUser(&context))).Methods("PUT")
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	// Create and send an update request.
+	body := []byte(`{
+		"name": "Test User"
+	}`)
+	url := fmt.Sprintf("%s/%d", server.URL, ids["user.nonadmin"])
+	req := httptest.NewRequest("PUT", url, bytes.NewBuffer(body))
+	client := &http.Client {
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure the response was valid and the user is updated.
+	AssertEqual(200, res.StatusCode, t)
+
+	row := db.QueryRow("SELECT name FROM users WHERE id=?", ids["user.nonadmin"])
+	var name sql.NullString
+	err = row.Scan(&name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	AssertEqual("Test User", name, t)
 }
