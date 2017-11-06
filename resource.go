@@ -80,3 +80,21 @@ func (r *Resource) Delete() error {
 
 	return err
 }
+
+// CheckExistence checks to make sure a resource exists, by its ID. If there is 
+// an error in querying for this information, this function defaults to true.
+func CheckExistence(id int64, table string, db *sql.DB) (bool, error) {
+	query := fmt.Sprintf("SELECT id FROM %s WHERE id=?", table)
+	rows, err := db.Query(query, id)
+	if err != nil {
+		return true, err
+	}
+	defer rows.Close()
+
+	return rows.Next(), nil
+}
+
+// Exists checks to make sure the already-created resource actually exists.
+func (r *Resource) Exists() (bool, error) {
+	return CheckExistence(r.ID, r.Table, r.DB)
+}

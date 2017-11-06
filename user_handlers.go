@@ -115,38 +115,59 @@ func GetUser(context *Context) http.HandlerFunc {
 
 func PutUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
-		// Retrieve and validate the given data.
-		name := r.FormValue("name")
+		// Create a new response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
 
-		if len(name) == 0 {
-			// TODO: invalid data
-			return
-		}
+		// Retrieve any new data.
+		name := r.FormValue("name")
 
 		// Retrieve the user ID.
 		vars := mux.Vars(r)
 		idStr, ok := vars["id"]
 		if !ok {
-			http.Error(w, "No ID specified.", http.StatusNotFound)
+			resp.StatusCode = 404
+			resp.ErrorMessage = "No ID specified."
 			return
 		}
 
 		// Convert the ID to an int.
 		uID, err := strconv.Atoi(idStr)
 		if err != nil {
-			http.Error(w, "Improper ID.", http.StatusNotFound)
+			resp.StatusCode = 404
+			resp.ErrorMessage = "Improper ID."
+			return
+		}
+		
+		// Make sure the user actually exists.
+		if exists, _ := CheckExistence(int64(uID), "users", context.DB); !exists {
+			resp.StatusCode = 404
+			resp.ErrorMessage = "User does not exist."
 			return
 		}
 
 		// Retrieve the user model.
-		_, err = LoadUser(int64(uID), context.DB)
+		u, err := LoadUser(int64(uID), context.DB)
 		if err != nil {
-			http.Error(w, "User not found.", http.StatusNotFound)
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load user."
 			return
 		}
 
-		// Store the new values.
+		// Set the new values.
 		// TODO: make sure user is allowed to change the data.
+		u.Name.String = name
+		u.Name.Valid = len(name) > 0
 
+		// Store the new values in the database.
+		err = u.Save()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not store new data."
+			return
+		}
+
+		// Add the user model to the response.
+		resp.Models = append(resp.Models, u)
 	}
 }
