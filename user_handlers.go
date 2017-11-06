@@ -124,9 +124,10 @@ func GetUser(context *Context) http.HandlerFunc {
 		uID, err := strconv.Atoi(idStr)
 		if err != nil {
 			http.Error(w, "Improper ID.", http.StatusNotFound)
+			return
 		}
 
-		// Retrieve a user model.
+		// Retrieve a user model.  
 		u, err := LoadUser(int64(uID), context.DB)
 		if err != nil {
 			http.Error(w, "User not found.", http.StatusNotFound)
@@ -137,5 +138,43 @@ func GetUser(context *Context) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		j, _ := json.Marshal(u)
 		w.Write(j)
+	}
+}
+
+func PutUser(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Retrieve and validate the given data.
+		name := r.FormValue("name")
+
+		if len(name) == 0 {
+			// TODO: invalid data
+			return
+		}
+
+		// Retrieve the user ID.
+		vars := mux.Vars(r)
+		idStr, ok := vars["id"]
+		if !ok {
+			http.Error(w, "No ID specified.", http.StatusNotFound)
+			return
+		}
+
+		// Convert the ID to an int.
+		uID, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Improper ID.", http.StatusNotFound)
+			return
+		}
+
+		// Retrieve the user model.
+		_, err = LoadUser(int64(uID), context.DB)
+		if err != nil {
+			http.Error(w, "User not found.", http.StatusNotFound)
+			return
+		}
+
+		// Store the new values.
+		// TODO: make sure user is allowed to change the data.
+
 	}
 }
