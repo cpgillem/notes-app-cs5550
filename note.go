@@ -12,15 +12,15 @@ type Note struct {
 	UserID int64
 }
 
-func (n Note) Load() error {
+func (n *Note) Load() error {
 	return n.Select([]string{"title", "content", "time", "user_id"}, &n.Title, &n.Content, &n.Time, &n.UserID)
 }
 
-func (n Note) Save() error {
+func (n *Note) Save() error {
 	return n.Sync([]string{"title", "content", "time", "user_id"}, n.Title, n.Content.String, n.Time.String, n.UserID)
 }
 
-func (n Note) User() (u User, err error) {
+func (n *Note) User() (u User, err error) {
 	// Create an unloaded model for the user.
 	u = User {
 		Resource: Resource {
@@ -36,7 +36,7 @@ func (n Note) User() (u User, err error) {
 	return
 }
 
-func (n Note) Tags() (ts []Tag, err error) {
+func (n *Note) Tags() (ts []Tag, err error) {
 	// Create empty slice of tags.
 	ts = []Tag{}
 

@@ -1,7 +1,7 @@
 package csnotes
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,7 +26,8 @@ func PostUser(context *Context) http.HandlerFunc {
 
 		if exists, err := CheckUsernameExists(username, context.DB); exists {
 			if err != nil {
-				http.Error(w, "Could not check for username existence.", http.StatusInternalServerError)
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not check for username existence."
 			}
 			resp.Fields["username"] = "Username already exists."
 		}
@@ -53,14 +54,16 @@ func PostUser(context *Context) http.HandlerFunc {
 		// Save the model.
 		err := u.Save()
 		if err != nil {
-			resp.Errors = append(resp.Errors, "Could not save new user.")
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not save new user."
 			return
 		}
 
 		// Hash and store the user's password.
 		err = StorePassword(u.ID, password, context.DB)
 		if err != nil {
-			resp.Errors = append(resp.Errors, "Could not store password.")
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not store password."
 
 			// Try to delete the user, since the password is required.
 			u.Delete()
@@ -69,38 +72,44 @@ func PostUser(context *Context) http.HandlerFunc {
 		}
 
 		// If all was successful, the response will include the user model.
+		fmt.Println(u)
 		resp.Models = append(resp.Models, u)
 	}
 }
 
 func GetUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
+		// Create the response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
 		// Retrieve the ID.
 		vars := mux.Vars(r)
 		idStr, ok := vars["id"]
 		if !ok {
-			http.Error(w, "No ID specified.", http.StatusNotFound)
+			resp.StatusCode = 404
+			resp.ErrorMessage = "No ID specified."
 			return
 		}
 
 		// Convert the ID to an int.
 		uID, err := strconv.Atoi(idStr)
 		if err != nil {
-			http.Error(w, "Improper ID.", http.StatusNotFound)
+			resp.StatusCode = 404
+			resp.ErrorMessage = "Improper ID."
 			return
 		}
 
 		// Retrieve a user model.  
 		u, err := LoadUser(int64(uID), context.DB)
 		if err != nil {
-			http.Error(w, "User not found.", http.StatusNotFound)
+			resp.StatusCode = 404
+			resp.ErrorMessage = "User not found."
 			return
 		}
 
-		// Return this user's data as a JSON response.
-		w.Header().Set("Content-Type", "application/json")
-		j, _ := json.Marshal(u)
-		w.Write(j)
+		// Return this user's data.
+		resp.Models = append(resp.Models, u)
 	}
 }
 

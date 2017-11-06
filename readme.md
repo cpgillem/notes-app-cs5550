@@ -20,3 +20,6 @@ A simplified Google-keep-like notes app for CS 5550 (Networks).
 - https://gist.github.com/thealexcons/4ecc09d50e6b9b3ff4e2408e910beb22
 - https://crackstation.net/hashing-security.htm
 - https://elithrar.github.io/article/generating-secure-random-numbers-crypto-rand/
+- http://blog.restcase.com/rest-api-error-codes-101/
+- https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
+- https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#4xx_Client_errors

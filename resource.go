@@ -48,6 +48,9 @@ func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 
 		// Give the resource the proper ID.
 		r.ID, err = res.LastInsertId()
+		if err != nil {
+			return err
+		}
 	} else {
 		var updateCols []string
 		for _, c := range cols {

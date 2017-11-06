@@ -70,15 +70,15 @@ func ValidateUser(username, password string, db *sql.DB) (u User, err error) {
 	return
 }
 
-func (u User) Load() error {
+func (u *User) Load() error {
 	return u.Select([]string{"username", "name", "admin"}, &u.Username, &u.Name, &u.Admin)
 }
 
-func (u User) Save() error {
+func (u *User) Save() error {
 	return u.Sync([]string{"username", "name", "admin"}, u.Username, u.Name, u.Admin)
 }
 
-func (u User) Notes() (ns []Note, err error) {
+func (u *User) Notes() (ns []Note, err error) {
 	rows, err := u.DB.Query("SELECT id FROM notes WHERE user_id = ?", u.ID)
 	ns = []Note{}
 
