@@ -5,15 +5,15 @@ type Tag struct {
 	Title string
 }
 
-func (t *Tag) Load() error {
+func (t Tag) Load() error {
 	return t.Select([]string{"title"}, &t.Title)
 }
 
-func (t *Tag) Save() error {
+func (t Tag) Save() error {
 	return t.Sync([]string{"title"}, t.Title)
 }
 
-func (t *Tag) Notes() (ns []Note, err error) {
+func (t Tag) Notes() (ns []Note, err error) {
 	// Create an empty slice of notes.
 	ns = []Note{}
 
