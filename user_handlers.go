@@ -2,47 +2,74 @@ package csnotes
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/dgrijalva/jwt-go"
 )
 
 func PostUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
+		// Create the response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Retrieve the form values.
 		username := r.FormValue("username")
+		name := r.FormValue("name")
 		password := r.FormValue("password")
 
-		// Validate the input data
+		// Validate the input data.
 		if len(username) < 8 {
-			// TODO: Validation should be in 200 response.
-			http.Error(w, "Username must be longer than 8 characters.", http.StatusInternalServerError)
-			return
+			resp.Fields["username"] = "Username must be longer than 8 characters."
+		}
+
+		if exists, err := CheckUsernameExists(username, context.DB); exists {
+			if err != nil {
+				http.Error(w, "Could not check for username existence.", http.StatusInternalServerError)
+			}
+			resp.Fields["username"] = "Username already exists."
 		}
 
 		if len(password) < 8 {
-			http.Error(w, "Password must be longer than 8 characters.", http.StatusInternalServerError)
+			resp.Fields["password"] = "Password must be longer than 8 characters."
+		}
+
+		// If one or more fields were invalid, respond early.
+		if len(resp.Fields) > 0 {
 			return
 		}
 
 		// Create a user model.
 		u := NewUser(context.DB)
+
+		// Set the new model's data.
+		if len(name) > 0 {
+			u.Name.String = name
+			u.Name.Valid = true
+		}
 		u.Username = username
+
+		// Save the model.
 		err := u.Save()
 		if err != nil {
-			http.Error(w, "Could not save new user.", http.StatusInternalServerError)
+			resp.Errors = append(resp.Errors, "Could not save new user.")
 			return
 		}
 
 		// Hash and store the user's password.
 		err = StorePassword(u.ID, password, context.DB)
 		if err != nil {
-			http.Error(w, "Could not store password.", http.StatusInternalServerError)
+			resp.Errors = append(resp.Errors, "Could not store password.")
+
+			// Try to delete the user, since the password is required.
+			u.Delete()
+
 			return
 		}
+
+		// If all was successful, the response will include the user model.
+		resp.Models = append(resp.Models, u)
 	}
 }
 

@@ -11,6 +11,19 @@ type User struct {
 	Admin bool `json:"admin"`
 }
 
+// CheckUsernameExists checks for a username in the database. If it exists,
+// the function returns true.
+func CheckUsernameExists(username string, db *sql.DB) (bool, error) {
+	// Query the database, and if there is any row, return true.
+	rows, err := db.Query("SELECT username FROM users WHERE username=?", username)
+	if err != nil {
+		return false, err
+	}
+
+	defer rows.Close()
+	return rows.Next(), nil
+}
+
 func NewUser(db *sql.DB) (u User) {
 	return User {
 		Resource: Resource {
@@ -57,15 +70,15 @@ func ValidateUser(username, password string, db *sql.DB) (u User, err error) {
 	return
 }
 
-func (u *User) Load() error {
+func (u User) Load() error {
 	return u.Select([]string{"username", "name", "admin"}, &u.Username, &u.Name, &u.Admin)
 }
 
-func (u *User) Save() error {
+func (u User) Save() error {
 	return u.Sync([]string{"username", "name", "admin"}, u.Username, u.Name, u.Admin)
 }
 
-func (u *User) Notes() (ns []Note, err error) {
+func (u User) Notes() (ns []Note, err error) {
 	rows, err := u.DB.Query("SELECT id FROM notes WHERE user_id = ?", u.ID)
 	ns = []Note{}
 
