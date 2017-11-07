@@ -6,10 +6,29 @@ import (
 
 type Note struct {
 	Resource
-	Title string
-	Content sql.NullString
-	Time sql.NullString
-	UserID int64
+	Title string `json:"title"`
+	Content sql.NullString `json:"content"`
+	Time sql.NullString	`json:"time"`
+	UserID int64 `json:"user_id"`
+}
+
+// NewNote creates a new note model with no ID or any fields set.
+func NewNote(db *sql.DB) (n Note) {
+	return Note {
+		Resource: Resource {
+			DB: db,
+			Table: "notes",
+		},
+	}
+}
+
+// LoadNote attempts to load a note's fields from the database, given its ID.
+func LoadNote(id int64, db *sql.DB) (n Note, err error) {
+	n = NewNote(db)
+	n.ID = id
+	err = n.Load()
+
+	return
 }
 
 func (n *Note) Load() error {
