@@ -121,24 +121,13 @@ func GetUser(context *Context) http.HandlerFunc {
 		defer resp.Respond(w)
 
 		// Retrieve the ID.
-		vars := mux.Vars(r)
-		idStr, ok := vars["id"]
+		uID, ok := GetURLID(r, &resp)
 		if !ok {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "No ID specified."
-			return
-		}
-
-		// Convert the ID to an int.
-		uID, err := strconv.Atoi(idStr)
-		if err != nil {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "Improper ID."
 			return
 		}
 
 		// Retrieve a user model.  
-		u, err := LoadUser(int64(uID), context.DB)
+		u, err := LoadUser(uID, context.DB)
 		if err != nil {
 			resp.StatusCode = 404
 			resp.ErrorMessage = "User not found."
@@ -225,5 +214,56 @@ func PutUser(context *Context) http.HandlerFunc {
 
 		// Add the user model to the response.
 		resp.Models = append(resp.Models, u)
+	}
+}
+
+// GetUserNotes retrieves all the notes belonging to a user.
+func GetUserNotes(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Create a response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Get the user ID from the URL.
+		uID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Retrieve the logged in user.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Could not get logged in user."
+			return
+		}
+
+		// Make sure the logged in user is allowed to see the notes.
+		if currentUserID != uID && !currentUserAdmin {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Access denied."
+			return
+		}
+
+		// Load the user model.
+		u, err := LoadUser(uID, context.DB)
+		if err != nil {
+			resp.StatusCode = 404
+			resp.ErrorMessage = "User not found."
+			return
+		}
+
+		// Get the user's notes.
+		ns, err := u.Notes()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load notes."
+			return
+		}
+
+		// Add the notes to the response.
+		for _, n := range ns {
+			resp.Models = append(resp.Models, n)
+		}
 	}
 }
