@@ -77,6 +77,43 @@ func PostUser(context *Context) http.HandlerFunc {
 	}
 }
 
+// GetUsers retrieves all users and returns them as an array of user models.
+func GetUsers(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Create the response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Make sure the logged in user is available.
+		_, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			return
+		}
+
+		// Make sure the logged in user is an admin.
+		if !currentUserAdmin {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Only admins can retrieve all users."
+			return
+		}
+
+		// Retrieve all the user models.
+		users, err := LoadAllUsers(context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not retrieve users."
+			return
+		}
+
+		// Add the user models to the response.
+		for _, m := range users {
+			resp.Models = append(resp.Models, m)
+		}
+	}
+}
+
 func GetUser(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		// Create the response.
