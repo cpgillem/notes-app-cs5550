@@ -125,3 +125,73 @@ func PostNote(context *Context) http.HandlerFunc {
 		resp.Models = append(resp.Models, n)
 	}
 }
+
+// PutNote updates a note's data. If the user doesn't own the note, and is not
+// an admin, they will be denied access.
+func PutNote(context *Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Create a response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Retrieve the form values.
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		time := r.FormValue("time")
+
+		// Make sure the title is not empty.
+		if len(title) == 0 {
+			resp.Fields["title"] = "Title must not be empty."
+			return
+		}
+
+		// Retrieve the note ID.
+		nID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Load the note model.
+		n, err := LoadNote(nID, context.DB)
+		if err != nil {
+			resp.StatusCode = 404
+			resp.ErrorMessage = "Note not found."
+			return
+		}
+
+		// Retrieve the logged in user's data.
+		userID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			return
+		}
+
+		// If the user does not own this note, and isn't an admin, deny access.
+		if !currentUserAdmin && userID != n.UserID {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Access denied."
+			return
+		}
+
+		// Update the note's values.
+		n.Title = title
+
+		n.Content.String = content
+		n.Content.Valid = len(content) > 0
+
+		n.Time.String = time
+		n.Time.Valid = len(time) > 0
+
+		// Save the note.
+		err = n.Save()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not save note."
+			return
+		}
+
+		// Add the newly updated note to the response.
+		resp.Models = append(resp.Models, n)
+	}
+}
