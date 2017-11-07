@@ -7,7 +7,6 @@ import (
 	"github.com/urfave/negroni"
 )
 
-
 func CreateRouter(context *Context) *mux.Router {
 	router := mux.NewRouter()
 

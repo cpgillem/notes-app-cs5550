@@ -46,10 +46,8 @@ func PostLogin(context *Context) http.HandlerFunc {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims {
 			"iss": "admin",
 			"exp": time.Now().Add(time.Minute * 20).Unix(),
-			// TODO: Possibly use a generated struct that contains all necessary data
-			"CustomUserInfo": struct {
-				ID int64
-			} {user.ID},
+			"user_id": user.ID,
+			"user_admin": user.Admin,
 		})
 
 		tokenString, err := token.SignedString(context.SignKey)

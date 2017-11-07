@@ -154,8 +154,27 @@ func PutUser(context *Context) http.HandlerFunc {
 			return
 		}
 
+		// Retrieve the logged in user ID.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			fmt.Println(err)
+			return
+		}
+
+		// Ensure that the logged in user is allowed to modify the specified 
+		// user.
+		if currentUserID != u.ID && !currentUserAdmin {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Access denied. Must be admin or logged in as this user."
+			return
+		}
+
 		// Set the new values.
-		// TODO: make sure user is allowed to change the data.
+		// NOTE: These values will not take effect until the user logs out and back
+		// in, since the JWT isn't updated. This could be remedied in a future
+		// iteration if necessary.
 		u.Name.String = name
 		u.Name.Valid = len(name) > 0
 
