@@ -29,6 +29,8 @@ func CreateRouter(context *Context) *mux.Router {
 	router.HandleFunc("/user/{id}", PutUser(context)).Methods("PUT")
 	router.HandleFunc("/user/{id}/notes", GetUserNotes(context)).Methods("GET")
 
+	router.HandleFunc("/note", PostNote(context)).Methods("POST")
+
 	// Authenticated Routes
 	router.Handle("/note/{id}", negroni.New(
 		negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
