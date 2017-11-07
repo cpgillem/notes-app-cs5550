@@ -4,7 +4,6 @@ import (
 	"crypto/rsa"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -63,7 +62,6 @@ func (c *Context) LoggedInUser(r *http.Request) (uID int64, admin bool, err erro
 		err = errors.New("Could not load user data from token.")
 		return
 	}
-	fmt.Println(claims)
 	uID = int64(id)
 
 	// Extract the admin status.
