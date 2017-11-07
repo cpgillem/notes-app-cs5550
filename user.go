@@ -41,6 +41,45 @@ func LoadUser(id int64, db *sql.DB) (u User, err error) {
 	return
 }
 
+func LoadAllUsers(db *sql.DB) (us []User, err error) {
+	// Initalize the slice.
+	us = []User{}
+
+	// Query the database for users.
+	rows, err := db.Query("SELECT id, name, username, admin FROM users")
+	if err != nil {
+		return
+	}
+
+	// Load the users into the slice.
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		var name sql.NullString
+		var username string
+		var admin bool
+
+		// Scan the data. If the user data could not be scanned, do not add
+		// a new model.
+		err = rows.Scan(&id, &name, &username, &admin)
+		if err != nil {
+			continue
+		}
+
+		// Create a new model.
+		u := NewUser(db)
+		u.ID = id
+		u.Name = name
+		u.Username = username
+		u.Admin = admin
+
+		// Add the user model.
+		us = append(us, u)
+	}
+
+	return
+}
+
 // ValidateUser takes a username and password and attempts to load a 
 // user model from this information. If the user could not be found, or if
 // the password is incorrect, an error is returned.
