@@ -1,14 +1,50 @@
 package csnotes
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 )
 
+// GetNote retrieves a note from a user. If the logged in user is not admin,
+// they will only be able to retrieve a note that's theirs.
 func GetNote(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "logged in")
+		// Create response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Get the note ID.
+		nID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Load the note model.
+		n, err := LoadNote(nID, context.DB)
+		if err != nil {
+			resp.StatusCode = 404
+			resp.ErrorMessage = "Note not found."
+			return
+		}
+
+		// Get the logged in user's data.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			return
+		}
+
+		// If the currently logged in user does not own the note, or is not
+		// admin, access will be denied to the note.
+		if !currentUserAdmin && currentUserID != n.UserID {
+			resp.StatusCode = 403
+			resp.ErrorMessage ="Access denied."
+			return
+		}
+
+		// Add the note model to the response.
+		resp.Models = append(resp.Models, n)
 	}
 }
 
