@@ -74,10 +74,6 @@ func (r *Resource) Delete() error {
 	query := fmt.Sprintf("DELETE FROM %v WHERE id=?", r.Table)
 	_, err := r.DB.Exec(query, r.ID)
 
-	if err == nil {
-		r.ID = 0
-	}
-
 	return err
 }
 
