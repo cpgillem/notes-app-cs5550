@@ -185,11 +185,6 @@ func TestResourceDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The model's ID should have been reset to 0.
-	if user.ID != 0 {
-		t.Errorf("Expected ID to be 0, received %v.", user.ID)
-	}
-
 	// Make sure the user does not exist in the database.
 	rows, err := db.Query("SELECT * FROM users WHERE id=?", id)
 	defer rows.Close()
