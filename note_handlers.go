@@ -195,3 +195,61 @@ func PutNote(context *Context) http.HandlerFunc {
 		resp.Models = append(resp.Models, n)
 	}
 }
+
+func DeleteNote(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Create the response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Retrieve the ID from the URL.
+		nID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Check for the note's existence.
+		if e, err := CheckExistence(nID, "notes", context.DB); !e && err == nil {
+			resp.StatusCode = 404
+			resp.ErrorMessage = "Note not found."
+		} else if !e {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not verify note's existence."
+			return
+		}
+
+		// Load the data of the user that's logged in.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			return
+		}
+
+		// Create a model for the note from the ID.
+		n, err := LoadNote(nID, context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not retrieve note."
+			return
+		}
+
+		// Make sure the user is either admin or the owner of the note.
+		if n.UserID != currentUserID && !currentUserAdmin {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Must be admin or owner of note."
+			return
+		}
+
+		// Delete the note.
+		err = n.Delete()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not delete note."
+			return
+		}
+
+		// Add the old note's data to the response.
+		resp.Models = append(resp.Models, n)
+	}
+}

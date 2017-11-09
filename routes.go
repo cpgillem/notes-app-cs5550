@@ -34,6 +34,7 @@ func CreateRouter(context *Context) *mux.Router {
 	router.HandleFunc("/note", PostNote(context)).Methods("POST")
 	router.HandleFunc("/note/{id}", GetNote(context)).Methods("GET")
 	router.HandleFunc("/note/{id}", PutNote(context)).Methods("PUT")
+	router.HandleFunc("/note/{id}", DeleteNote(context)).Methods("DELETE")
 
 	// Authenticated Routes
 	router.Handle("/note/{id}", negroni.New(
