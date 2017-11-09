@@ -40,19 +40,8 @@ func (n *Note) Save() error {
 }
 
 func (n *Note) User() (u User, err error) {
-	// Create an unloaded model for the user.
-	u = User {
-		Resource: Resource {
-			ID: n.UserID,
-			DB: n.DB,
-			Table: "users",
-		},
-	}
-
-	// Define err as the result of loading the user from their ID.
-	err = u.Load()
-
-	return
+	// Load the tag's user from their ID.
+	return LoadUser(n.UserID, n.DB)
 }
 
 func (n *Note) Tags() (ts []Tag, err error) {
