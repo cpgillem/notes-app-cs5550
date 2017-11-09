@@ -3,9 +3,6 @@ package csnotes
 import (
 	"fmt"
 	"net/http"
-	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 func PostUser(context *Context) http.HandlerFunc {
@@ -87,7 +84,7 @@ func GetUsers(context *Context) http.HandlerFunc {
 		// Make sure the logged in user is available.
 		_, currentUserAdmin, err := context.LoggedInUser(r)
 		if err != nil {
-			resp.StatusCode = 403
+			resp.StatusCode = 500
 			resp.ErrorMessage = "Could not retrieve logged in user."
 			return
 		}
@@ -126,11 +123,23 @@ func GetUser(context *Context) http.HandlerFunc {
 			return
 		}
 
+		// Check for the user's existence.
+		if e, err := CheckExistence(uID, "users", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "User not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify user's existence."
+			}
+			return
+		}
+
 		// Retrieve a user model.  
 		u, err := LoadUser(uID, context.DB)
 		if err != nil {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "User not found."
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load user."
 			return
 		}
 
@@ -149,26 +158,20 @@ func PutUser(context *Context) http.HandlerFunc {
 		name := r.FormValue("name")
 
 		// Retrieve the user ID.
-		vars := mux.Vars(r)
-		idStr, ok := vars["id"]
+		uID, ok := GetURLID(r, &resp)
 		if !ok {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "No ID specified."
 			return
 		}
 
-		// Convert the ID to an int.
-		uID, err := strconv.Atoi(idStr)
-		if err != nil {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "Improper ID."
-			return
-		}
-		
-		// Make sure the user actually exists.
-		if exists, _ := CheckExistence(int64(uID), "users", context.DB); !exists {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "User does not exist."
+		// Check for the user's existence.
+		if e, err := CheckExistence(uID, "users", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "User not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify user's existence."
+			}
 			return
 		}
 
@@ -227,6 +230,18 @@ func GetUserNotes(context *Context) http.HandlerFunc {
 		// Get the user ID from the URL.
 		uID, ok := GetURLID(r, &resp)
 		if !ok {
+			return
+		}
+
+		// Check for the user's existence.
+		if e, err := CheckExistence(uID, "users", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "User not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify user's existence."
+			}
 			return
 		}
 

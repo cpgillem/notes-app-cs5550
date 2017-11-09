@@ -19,18 +19,30 @@ func GetNote(context *Context) http.HandlerFunc {
 			return
 		}
 
+		// Check for the note's existence.
+		if e, err := CheckExistence(nID, "notes", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "Note not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify note's existence."
+			}
+			return
+		}
+		
 		// Load the note model.
 		n, err := LoadNote(nID, context.DB)
 		if err != nil {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "Note not found."
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load note."
 			return
 		}
 
 		// Get the logged in user's data.
 		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
 		if err != nil {
-			resp.StatusCode = 403
+			resp.StatusCode = 500
 			resp.ErrorMessage = "Could not retrieve logged in user."
 			return
 		}
@@ -75,7 +87,7 @@ func PostNote(context *Context) http.HandlerFunc {
 		// Retrieve the logged in user's data.
 		userID, currentUserAdmin, err := context.LoggedInUser(r)
 		if err != nil {
-			resp.StatusCode = 403
+			resp.StatusCode = 500
 			resp.ErrorMessage = "Could not retrieve logged in user."
 			return
 		}
@@ -151,10 +163,22 @@ func PutNote(context *Context) http.HandlerFunc {
 			return
 		}
 
+		// Check for the note's existence.
+		if e, err := CheckExistence(nID, "notes", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "Note not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify note's existence."
+			}
+			return
+		}
+
 		// Load the note model.
 		n, err := LoadNote(nID, context.DB)
 		if err != nil {
-			resp.StatusCode = 404
+			resp.StatusCode = 500
 			resp.ErrorMessage = "Note not found."
 			return
 		}
@@ -196,6 +220,8 @@ func PutNote(context *Context) http.HandlerFunc {
 	}
 }
 
+// DeleteNote removes a note from the database as long as the user is either
+// admin or the owner of the note.
 func DeleteNote(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		// Create the response.
@@ -209,12 +235,14 @@ func DeleteNote(context *Context) http.HandlerFunc {
 		}
 
 		// Check for the note's existence.
-		if e, err := CheckExistence(nID, "notes", context.DB); !e && err == nil {
-			resp.StatusCode = 404
-			resp.ErrorMessage = "Note not found."
-		} else if !e {
-			resp.StatusCode = 500
-			resp.ErrorMessage = "Could not verify note's existence."
+		if e, err := CheckExistence(nID, "notes", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "Note not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify note's existence."
+			}
 			return
 		}
 
