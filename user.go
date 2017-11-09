@@ -125,7 +125,7 @@ func (u *User) Notes() (ns []Note, err error) {
 	for rows.Next() {
 		var nID int64
 
-		err := rows.Scan(&nID)
+		err = rows.Scan(&nID)
 		if err != nil {
 			continue
 		}
@@ -147,4 +147,33 @@ func (u *User) Notes() (ns []Note, err error) {
 	}
 
 	return 
+}
+
+// Tags retrieves all the tags belonging to this user.
+func (u *User) Tags() (ts []Tag, err error) {
+	// Query the database for tags.
+	rows, err := u.DB.Query("SELECT id FROM tags WHERE user_id = ?", u.ID)
+	ts = []Tag{}
+
+	defer rows.Close()
+	for rows.Next() {
+		var tID int64
+
+		// Scan the ID from the tag row. If not possible, do not add the tag.
+		err = rows.Scan(&tID)
+		if err != nil {
+			continue
+		}
+
+		// Create a new tag model. If not possible, do not add the tag.
+		t, err := LoadTag(tID, u.DB)
+		if err != nil {
+			continue
+		}
+
+		// Add the tag to the slice.
+		ts = append(ts, t)
+	}
+
+	return
 }

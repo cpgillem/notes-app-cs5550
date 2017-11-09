@@ -157,3 +157,31 @@ func TestNoteTags(t *testing.T) {
 	AssertEqual("tag1", ts[0].Title, t)
 	AssertEqual("tag2", ts[1].Title, t)
 }
+
+// TestUserTags retrieves tags that belong to a user
+func TestUserTags(t *testing.T) {
+	db, ids, err := SeededTestDB()
+	defer TearDownDbTest(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a mock user model.
+	user := User {
+		Resource: Resource {
+			ID: ids["user.nonadmin"],
+			DB: db,
+			Table: "users",
+		},
+	}
+
+	// Retrieve the user's tags.
+	ts, err := user.Tags()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	AssertEqual(2, len(ts), t)
+	AssertEqual("tag1", ts[0].Title, t)
+	AssertEqual("tag2", ts[1].Title, t)
+}
