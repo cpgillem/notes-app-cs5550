@@ -1,16 +1,21 @@
 package csnotes
 
+import (
+	"database/sql"
+)
+
 type Tag struct {
 	Resource
 	Title string
+	UserID int64
 }
 
 func (t *Tag) Load() error {
-	return t.Select([]string{"title"}, &t.Title)
+	return t.Select([]string{"title", "user_id"}, &t.Title, &t.UserID)
 }
 
 func (t *Tag) Save() error {
-	return t.Sync([]string{"title"}, t.Title)
+	return t.Sync([]string{"title", "user_id"}, t.Title, t.UserID)
 }
 
 func (t *Tag) Notes() (ns []Note, err error) {
@@ -50,6 +55,23 @@ func (t *Tag) Notes() (ns []Note, err error) {
 		// Append the model.
 		ns = append(ns, n)
 	}
+
+	return
+}
+
+func NewTag(db *sql.DB) (t Tag) {
+	return Tag {
+		Resource: Resource {
+			DB: db,
+			Table: "tags",
+		},
+	}
+}
+
+func LoadTag(id int64, db *sql.DB) (t Tag, err error) {
+	t = NewTag(db)
+	t.ID = id
+	err = t.Load()
 
 	return
 }
