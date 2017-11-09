@@ -38,6 +38,7 @@ func SetUpDB(db *sql.DB) error {
 	_, err = db.Exec(`CREATE TABLE tags (
 				id		INT(10) NOT NULL UNIQUE AUTO_INCREMENT,
 				title	VARCHAR(191) NOT NULL,
+				user_id INT(10) NOT NULL,
 				PRIMARY KEY (id)
 			)`)
 	if err != nil {
@@ -165,7 +166,7 @@ func SeedDB(db *sql.DB) (ids map[string]int64, err error) {
 	}
 
 	// Tags
-	res, err = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag1")
+	res, err = db.Exec("INSERT INTO tags (title, user_id) VALUES (?, ?)", "tag1", ids["user.nonadmin"])
 	if err != nil {
 		return
 	}
@@ -174,7 +175,7 @@ func SeedDB(db *sql.DB) (ids map[string]int64, err error) {
 		return
 	}
 
-	res, err = db.Exec("INSERT INTO tags (title) VALUES (?)", "tag2")
+	res, err = db.Exec("INSERT INTO tags (title, user_id) VALUES (?, ?)", "tag2", ids["user.nonadmin"])
 	if err != nil {
 		return
 	}
