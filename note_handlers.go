@@ -281,3 +281,64 @@ func DeleteNote(context *Context) http.HandlerFunc {
 		resp.Models = append(resp.Models, n)
 	}
 }
+
+func GetNoteTags(context *Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Create the response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Get the note ID from the URL.
+		nID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Check for the existence of the note.
+		if e, err := CheckExistence(nID, "notes", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "Note not found."
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify note's existence."
+			}
+			return
+		}
+
+		// Attempt to load the note.
+		n, err := LoadNote(nID, context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load note."
+			return
+		}
+
+		// Get the logged in user's data.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not get logged in user."
+			return
+		}
+
+		// Verify that the user owns the note, or is admin.
+		if !currentUserAdmin && currentUserID != n.UserID {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Access denied."
+		}
+
+		// Retrieve the note's tags.
+		ts, err := n.Tags()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load tags."
+			return
+		}
+
+		// Add the tags to the response.
+		for _, t := range ts {
+			resp.Models = append(resp.Models, t)
+		}
+	}
+}
