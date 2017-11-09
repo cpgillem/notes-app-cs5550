@@ -38,7 +38,18 @@ func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 	
 	// If the resource does not exist, the query will be an INSERT statement.
 	// If it already exists, it will be an UPDATE statement.
-	if r.ID == 0 {
+	if e, err := r.Exists(); e && err == nil {
+		var updateCols []string
+		for _, c := range cols {
+			updateCols = append(updateCols, c + "=?")
+		}
+
+		query = fmt.Sprintf("UPDATE %v SET %v WHERE id=%v", r.Table, strings.Join(updateCols, ", "), r.ID)
+		_, err = r.DB.Exec(query, vals...)
+		if err != nil {
+			return err
+		}
+	} else {
 		query = fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)", r.Table, strings.Join(cols, ", "), "?" + strings.Repeat(", ?", len(vals) - 1))
 
 		res, err := r.DB.Exec(query, vals...)
@@ -48,17 +59,6 @@ func (r *Resource) Sync(cols []string, vals ...interface{}) error {
 
 		// Give the resource the proper ID.
 		r.ID, err = res.LastInsertId()
-		if err != nil {
-			return err
-		}
-	} else {
-		var updateCols []string
-		for _, c := range cols {
-			updateCols = append(updateCols, c + "=?")
-		}
-
-		query = fmt.Sprintf("UPDATE %v SET %v WHERE id=%v", r.Table, strings.Join(updateCols, ", "), r.ID)
-		_, err = r.DB.Exec(query, vals...)
 		if err != nil {
 			return err
 		}
