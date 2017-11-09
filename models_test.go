@@ -185,3 +185,32 @@ func TestUserTags(t *testing.T) {
 	AssertEqual("tag1", ts[0].Title, t)
 	AssertEqual("tag2", ts[1].Title, t)
 }
+
+func TestTagUser(t *testing.T) {
+	// Create seeded database.
+	db, ids, err := SeededTestDB()
+	defer TearDownDbTest(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a mock tag model.
+	tag := Tag {
+		Resource: Resource {
+			ID: ids["tags.tag1"],
+			DB: db,
+			Table: "tags",
+		},
+		Title: "tag1",
+		UserID: ids["user.nonadmin"],
+	}
+
+	// Load the user from the tag.
+	user, err := tag.User()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	AssertEqual(ids["user.nonadmin"], user.ID, t)
+	AssertEqual("nonadmin", user.Username, t)
+}

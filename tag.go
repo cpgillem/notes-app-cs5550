@@ -59,6 +59,11 @@ func (t *Tag) Notes() (ns []Note, err error) {
 	return
 }
 
+func (t *Tag) User() (u User, err error) {
+	// Load the user from the ID.
+	return LoadUser(t.UserID, t.DB)
+}
+
 func NewTag(db *sql.DB) (t Tag) {
 	return Tag {
 		Resource: Resource {
