@@ -186,7 +186,7 @@ func PutUser(context *Context) http.HandlerFunc {
 		// Retrieve the logged in user ID.
 		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
 		if err != nil {
-			resp.StatusCode = 403
+			resp.StatusCode = 500
 			resp.ErrorMessage = "Could not retrieve logged in user."
 			fmt.Println(err)
 			return
