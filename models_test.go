@@ -214,3 +214,83 @@ func TestTagUser(t *testing.T) {
 	AssertEqual(ids["user.nonadmin"], user.ID, t)
 	AssertEqual("nonadmin", user.Username, t)
 }
+
+func TestNoteAddTag(t *testing.T) {
+	// Create seeded database.
+	db, ids, err := SeededTestDB()
+	defer TearDownDbTest(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Add a new tag to the table for the nonadmin user.
+	res, err := db.Exec("INSERT INTO tags (title, user_id) VALUES ('note3', ?)", ids["user.nonadmin"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	// Get the ID of the tag.
+	tID, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a mock note model.
+	note := Note {
+		Resource: Resource {
+			ID: ids["note.note1"],
+			DB: db,
+			Table: "notes",
+		},
+	}
+
+	// Add the tag to one of the nonadmin user's notes.
+	err = note.AddTag(tID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure an entry now exists in the note_tag table.
+	rows, err := db.Query("SELECT * FROM note_tag WHERE note_id=? AND tag_id=?", note.ID, tID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		t.Errorf("No entry for note %d and tag %d.", note.ID, tID)
+	}
+}
+
+func TestNoteRemoveTag(t *testing.T) {
+	// Create seeded database.
+	db, ids, err := SeededTestDB()
+	defer TearDownDbTest(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a mock note model.
+	note := Note {
+		Resource: Resource {
+			ID: ids["note.note1"],
+			DB: db,
+			Table: "notes",
+		},
+	}
+
+	// Remove a tag from one of the nonadmin user's notes.
+	err = note.RemoveTag(ids["tag.tag1"])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure there is no entry in the note_tag table.
+	rows, err := db.Query("SELECT * FROM note_tag WHERE note_id=? AND tag_id=?", note.ID, ids["tag.tag1"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		t.Errorf("Entry for note %d and tag %d not deleted.", note.ID, ids["tag.tag1"])
+	}
+}

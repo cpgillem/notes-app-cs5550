@@ -84,3 +84,17 @@ func (n *Note) Tags() (ts []Tag, err error) {
 
 	return
 }
+
+// AddTag attaches a tag to this note.
+func (n *Note) AddTag(id int64) error {
+	// Insert a new row in the note_tag table.
+	_, err := n.DB.Exec("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)", n.ID, id)
+	return err
+}
+
+// RemoveTag detaches a tag from this note.
+func (n *Note) RemoveTag(id int64) error {
+	// Remove a row from the note_tag table.
+	_, err := n.DB.Exec("DELETE FROM note_tag WHERE note_id=? AND tag_id=?", n.ID, id)
+	return err
+}
