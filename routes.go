@@ -9,6 +9,7 @@ import (
 
 func CreateRouter(context *Context) *mux.Router {
 	router := mux.NewRouter()
+	api := mux.NewRouter().PathPrefix("/api").Subrouter().StrictSlash(true)
 
 	// Create middleware
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options {
@@ -24,25 +25,25 @@ func CreateRouter(context *Context) *mux.Router {
 	//router.HandleFunc("/logout", GetLogout(context)).Methods("GET")
 
 	// User Routes
-	router.HandleFunc("/user", GetUsers(context)).Methods("GET")
-	router.HandleFunc("/user", PostUser(context)).Methods("POST")
-	router.HandleFunc("/user/{id}", GetUser(context)).Methods("GET")
-	router.HandleFunc("/user/{id}", PutUser(context)).Methods("PUT")
-	router.HandleFunc("/user/{id}/note", GetUserNotes(context)).Methods("GET")
+	api.HandleFunc("/user", GetUsers(context)).Methods("GET")
+	api.HandleFunc("/user", PostUser(context)).Methods("POST")
+	api.HandleFunc("/user/{id}", GetUser(context)).Methods("GET")
+	api.HandleFunc("/user/{id}", PutUser(context)).Methods("PUT")
+	api.HandleFunc("/user/{id}/note", GetUserNotes(context)).Methods("GET")
 
 	// Note Routes
-	router.HandleFunc("/note", GetNotes(context)).Methods("GET")
-	router.HandleFunc("/note", PostNote(context)).Methods("POST")
-	router.HandleFunc("/note/{id}", GetNote(context)).Methods("GET")
-	router.HandleFunc("/note/{id}", PutNote(context)).Methods("PUT")
-	router.HandleFunc("/note/{id}", DeleteNote(context)).Methods("DELETE")
+	api.HandleFunc("/note", GetNotes(context)).Methods("GET")
+	api.HandleFunc("/note", PostNote(context)).Methods("POST")
+	api.HandleFunc("/note/{id}", GetNote(context)).Methods("GET")
+	api.HandleFunc("/note/{id}", PutNote(context)).Methods("PUT")
+	api.HandleFunc("/note/{id}", DeleteNote(context)).Methods("DELETE")
 	//router.HandleFunc("/note/{id}/tag", GetNoteTags(context)).Methods("GET")
 	//router.HandleFunc("/note/{id}/tag", PostNoteTag(context)).Methods("POST")
 
-	// Authenticated Routes
-	router.Handle("/note/{id}", negroni.New(
+	// Authenticated API Routes
+	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
-		negroni.Wrap(GetNote(context)),
+		negroni.Wrap(api),
 	))
 
 	return router
