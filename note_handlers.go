@@ -6,6 +6,43 @@ import (
 	"strconv"
 )
 
+func GetNotes(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Create response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+
+		// Get the logged in user's ID.
+		currentUserID, _, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not get logged in user."
+			return
+		}
+
+		// Create and load a user model.
+		u, err := LoadUser(currentUserID, context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load user data."
+			return
+		}
+
+		// Load the notes from the user model.
+		ns, err := u.Notes()
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load user's notes."
+			return
+		}
+
+		// Add the notes to the response.
+		for _, n := range ns {
+			resp.Models = append(resp.Models, n)
+		}
+	}
+}
+
 // GetNote retrieves a note from a user. If the logged in user is not admin,
 // they will only be able to retrieve a note that's theirs.
 func GetNote(context *Context) http.HandlerFunc {
