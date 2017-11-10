@@ -347,7 +347,7 @@ func GetNoteTags(context *Context) http.HandlerFunc {
 
 // PostNoteTags attaches a tag to a note through an intermediate table. The tag
 // ID is sent through a form parameter.
-func PostNoteTags(context *Context) http.HandlerFunc {
+func PostNoteTag(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		// Create a response.
 		resp := NewJSONResponse()
