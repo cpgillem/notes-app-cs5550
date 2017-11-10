@@ -130,15 +130,7 @@ func (u *User) Notes() (ns []Note, err error) {
 			continue
 		}
 
-		n := Note {
-			Resource: Resource {
-				ID: nID,
-				DB: u.DB,
-				Table: "notes",
-			},
-		}
-
-		err = n.Load()
+		n, err := LoadNote(nID, u.DB)
 		if err != nil {
 			continue
 		}
