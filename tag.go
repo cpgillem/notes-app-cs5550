@@ -6,8 +6,8 @@ import (
 
 type Tag struct {
 	Resource
-	Title string
-	UserID int64
+	Title string `json:"title"`
+	UserID int64 `json:"-"`
 }
 
 func (t *Tag) Load() error {

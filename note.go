@@ -9,7 +9,7 @@ type Note struct {
 	Title string `json:"title"`
 	Content sql.NullString `json:"content"`
 	Time sql.NullString	`json:"time"`
-	UserID int64 `json:"user_id"`
+	UserID int64 `json:"-"`
 }
 
 // NewNote creates a new note model with no ID or any fields set.
