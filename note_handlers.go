@@ -1,6 +1,7 @@
 package csnotes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -331,6 +332,7 @@ func GetNoteTags(context *Context) http.HandlerFunc {
 		// Retrieve the note's tags.
 		ts, err := n.Tags()
 		if err != nil {
+			fmt.Println(err)
 			resp.StatusCode = 500
 			resp.ErrorMessage = "Could not load tags."
 			return
@@ -340,5 +342,105 @@ func GetNoteTags(context *Context) http.HandlerFunc {
 		for _, t := range ts {
 			resp.Models = append(resp.Models, t)
 		}
+	}
+}
+
+// PostNoteTags attaches a tag to a note through an intermediate table. The tag
+// ID is sent through a form parameter.
+func PostNoteTags(context *Context) http.HandlerFunc {
+	return func (w http.ResponseWriter, r *http.Request) {
+		// Create a response.
+		resp := NewJSONResponse()
+		defer resp.Respond(w)
+		
+		// Retrieve the note ID.
+		nID, ok := GetURLID(r, &resp)
+		if !ok {
+			return
+		}
+
+		// Retrieve the tag ID.
+		tIDform := r.FormValue("tag_id")
+		
+		// Ensure a tag ID was given.
+		if len(tIDform) == 0 {
+			resp.Fields["tag_id"] = "No tag ID given."
+			return
+		}
+
+		// Ensure that the tag ID is a valid int.
+		tIDint, err := strconv.Atoi(tIDform)
+		if err != nil {
+			resp.Fields["tag_id"] = "Invalid tag ID."
+			return
+		}
+		tID := int64(tIDint)
+
+		// Make sure the note exists.
+		if e, err := CheckExistence(nID, "notes", context.DB); !e {
+			if err == nil {
+				resp.StatusCode = 404
+				resp.ErrorMessage = "Note not found."
+				return
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify existence of note."
+				return
+			}
+		}
+
+		// Load the note model.
+		n, err := LoadNote(nID, context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load note."
+			return
+		}
+
+		// Make sure the tag exists.
+		if e, err := CheckExistence(tID, "tags", context.DB); !e {
+			if err == nil {
+				resp.Fields["tag_id"] = "Tag does not exist."
+				return
+			} else {
+				resp.StatusCode = 500
+				resp.ErrorMessage = "Could not verify existence of tag."
+				return
+			}
+		}
+
+		// Load the tag as a model.
+		t, err := LoadTag(tID, context.DB)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not load tag."
+			return
+		}
+
+		// Retrieve the logged in user.
+		currentUserID, currentUserAdmin, err := context.LoggedInUser(r)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not retrieve logged in user."
+			return
+		}
+
+		// Make sure the user is either admin or owns the note and the tag.
+		if !currentUserAdmin && (currentUserID != t.UserID || currentUserID != n.UserID) {
+			resp.StatusCode = 403
+			resp.ErrorMessage = "Access Denied."
+			return
+		}
+
+		// Add the tag to the note.
+		err = n.AddTag(t.ID)
+		if err != nil {
+			resp.StatusCode = 500
+			resp.ErrorMessage = "Could not add tag to note."
+			return
+		}
+
+		// Add the tag model to the response.
+		resp.Models = append(resp.Models, t)
 	}
 }
