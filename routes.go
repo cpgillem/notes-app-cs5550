@@ -1,6 +1,8 @@
 package csnotes
 
 import (
+	"net/http"
+
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -45,6 +47,10 @@ func CreateRouter(context *Context) *mux.Router {
 		negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 		negroni.Wrap(api),
 	))
+
+	// Static assets
+	static := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	router.PathPrefix("/static").Handler(static)
 
 	return router
 }

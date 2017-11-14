@@ -25,3 +25,4 @@ A simplified Google-keep-like notes app for CS 5550 (Networks).
 - http://blog.restcase.com/rest-api-error-codes-101/
 - https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
 - https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#4xx_Client_errors
+- https://gowebexamples.com/templates/
