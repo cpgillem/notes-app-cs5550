@@ -22,7 +22,7 @@ func PostLogin(context *Context) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
-		
+
 		// Validate the data.
 		if len(username) == 0 {
 			http.Error(w, "No username.", http.StatusInternalServerError)

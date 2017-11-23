@@ -49,8 +49,8 @@ func CreateRouter(context *Context) *mux.Router {
 	))
 
 	// Static assets
-	static := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
-	router.PathPrefix("/static").Handler(static)
+	static := http.StripPrefix("/assets/", http.FileServer(http.Dir("./public/")))
+	router.PathPrefix("/assets").Handler(static)
 
 	return router
 }
