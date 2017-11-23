@@ -4,7 +4,11 @@
   "description": "Simple notes app for CS5550",
   "main": "templates/app.html",
   "scripts": {
-    "test": "go test"
+    "test": "go test",
+    "prestart": "gulp && go build",
+    "start": "app/app 8080",
+    "keygen-test": "scripts/keygen.sh keys",
+    "keygen-app": "scripts/keygen.sh app/keys"
   },
   "repository": {
     "type": "git",
