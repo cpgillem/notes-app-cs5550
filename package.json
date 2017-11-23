@@ -1,0 +1,31 @@
+{
+  "name": "csnotes",
+  "version": "1.0.0",
+  "description": "Simple notes app for CS5550",
+  "main": "templates/app.html",
+  "scripts": {
+    "test": "go test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cpgillem/notes-app-cs5550.git"
+  },
+  "author": "Cade Gillem",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cpgillem/notes-app-cs5550/issues"
+  },
+  "homepage": "https://github.com/cpgillem/notes-app-cs5550#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^3.0.0"
+  },
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "vue": "^2.5.8",
+    "vue-resource": "^1.3.4"
+  }
+}

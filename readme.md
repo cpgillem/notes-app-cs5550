@@ -26,3 +26,5 @@ A simplified Google-keep-like notes app for CS 5550 (Networks).
 - https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
 - https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#4xx_Client_errors
 - https://gowebexamples.com/templates/
+- https://elithrar.github.io/article/approximating-html-template-inheritance/
+- https://scotch.io/tutorials/create-a-single-page-app-with-go-echo-and-vue
