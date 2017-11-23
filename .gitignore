@@ -1,4 +1,14 @@
+# Vim files
 **.swp
+
+# Binaries and Compiled
+public/**
 app/app
 db/db
+
+# Keys
+keys/**
 app/keys/**
+
+# Dependencies
+node_modules
