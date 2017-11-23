@@ -9,13 +9,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// GetIndex handles requests for the main page of the site.
-func GetIndex(context *Context) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "test")
-	}
-}
-
 // GetLogin should take the user's credentials and create a
 // JSON web token if the authentication was successful.
 func PostLogin(context *Context) http.HandlerFunc {

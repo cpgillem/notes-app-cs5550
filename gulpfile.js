@@ -4,6 +4,12 @@ var minifyCSS = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var uglifyJS = require('gulp-uglify');
 
+// Copy HTML
+gulp.task('html', function() {
+  return gulp.src('assets/html/*.html')
+    .pipe(gulp.dest('public/'));
+});
+
 // Copy CSS
 gulp.task('css', function() {
   return gulp.src(['assets/css/*.css', 'node_modules/bootstrap/dist/css/bootstrap.css'])
@@ -21,4 +27,4 @@ gulp.task('js', function() {
 });
 
 // Default
-gulp.task('default', ['css', 'js']);
+gulp.task('default', ['html', 'css', 'js']);

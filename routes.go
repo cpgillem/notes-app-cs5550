@@ -21,10 +21,12 @@ func CreateRouter(context *Context) *mux.Router {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	// Public Routes
-	router.HandleFunc("/", GetIndex(context))
+	// Public assets
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./public")))
+
+	// Public Routes (non-GET)
 	router.HandleFunc("/login", PostLogin(context)).Methods("POST")
-	//router.HandleFunc("/logout", GetLogout(context)).Methods("GET")
+	//router.HandleFunc("/logout", PostLogout(context)).Methods("POST")
 
 	// User Routes
 	api.HandleFunc("/user", GetUsers(context)).Methods("GET")
@@ -47,10 +49,6 @@ func CreateRouter(context *Context) *mux.Router {
 		negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 		negroni.Wrap(api),
 	))
-
-	// Static assets
-	static := http.StripPrefix("/assets/", http.FileServer(http.Dir("./public/")))
-	router.PathPrefix("/assets").Handler(static)
 
 	return router
 }
