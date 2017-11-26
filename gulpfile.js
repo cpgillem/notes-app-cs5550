@@ -12,16 +12,21 @@ gulp.task('html', function() {
 
 // Copy CSS
 gulp.task('css', function() {
-  return gulp.src(['assets/css/*.css', 'node_modules/bootstrap/dist/css/bootstrap.css'])
-    .pipe(minifyCSS())
+  return gulp.src([
+      'assets/css/*.css', 
+      'node_modules/bootstrap/dist/css/bootstrap.css'
+  ]).pipe(minifyCSS())
     .pipe(concat('app.css'))
     .pipe(gulp.dest('public/'));
 });
 
 // Copy JS
 gulp.task('js', function() {
-  return gulp.src(['assets/js/*.js', 'node_modules/bootstrap/dist/js/bootstrap.js'])
-    .pipe(uglifyJS())
+  return gulp.src([
+      'assets/js/*.js', 
+      'node_modules/jquery/dist/jquery.js',
+      'node_modules/bootstrap/dist/js/bootstrap.js'
+  ]).pipe(uglifyJS())
     .pipe(concat('app.js'))
     .pipe(gulp.dest('public/'));
 });
