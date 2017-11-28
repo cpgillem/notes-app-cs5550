@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Notes App</title>
+        <link rel="stylesheet" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/app.css">
+        <script type="text/javascript" src="/js/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src="/js/popper.js"></script>
+        <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <h3>Login</h3>
+                    <div id="error" class="alert alert-danger" role="alert">
+                        Could not log in.
+                    </div>
+                    <form>
+                        <div class="form-group">
+                            <input class="form-control" type="text" name="username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" type="password" name="password" placeholder="Password">
+                        </div>
+                        <input class="btn" id="login" type="submit" value="Login">
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    <script type="text/javascript">
+        $('#error').hide();
+
+        $('#login').on('click', function(e) {
+            e.preventDefault();
+            // Clear any error message.
+            $('#error').hide();
+            
+            // Make login request.
+            $.ajax({
+                url: '/login',
+                type: 'POST',
+                data: $('form').serialize()
+            }).done(function(data) {
+                // Save token to local storage.
+                window.sessionStorage.accessToken = data.token;
+
+                // Redirect to main app.
+                window.location = "/index.html";
+            }).fail(function() {
+                // Display an error message.
+                $('#error').show();
+            });
+        });
+    </script>
+    </body>
+</html>
