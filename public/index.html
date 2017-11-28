@@ -24,7 +24,6 @@
                             <thead>
                                 <th scope="col">ID</th>
                                 <th scope="col">Title</th>
-                                <th scope="col">Date</th>
                                 <th scope="col">Actions</th>
                             </thead>
                             <tbody id="note-table-body">
@@ -44,11 +43,13 @@
                         <form class="form" id="note-editor-form">
                             <div class="form-group">
                                 <label for="note-title-edit">Title</label>
-                                <input class="form-control" type="text" name="title" id="note-title-edit">
+                                <input class="form-control" type="text" name="title" id="note-title-edit" aria-describedby="note-title-help">
+                                <small id="note-title-help" class="form-text text-muted"></small>
                             </div>
                             <div class="form-group">
                                 <label for="note-content-edit">Content</label>
-                                <textarea class="form-control" name="content" id="note-content-edit"></textarea>
+                                <textarea class="form-control" name="content" id="note-content-edit" aria-describedby="note-content-help"></textarea>
+                                <small id="note-content-help" class="form-text text-muted"></small>
                             </div>
                             <input type="submit" value="Update" class="btn" id="note-update">
                         </form>
