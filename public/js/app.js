@@ -1,4 +1,4 @@
-// Core data functions
+// Navigation Functions
 
 function toList() {
     $('#note-editor').hide();
@@ -17,6 +17,8 @@ function toEditor() {
     $('#note-list').hide();
     $('#note-editor').show();
 }
+
+// Requests
 
 // Concatenates an authorization header for any requests to use.
 function getAuthHeader() {
@@ -85,6 +87,7 @@ function getNoteDeleteFunc(id) {
 function getNoteUpdateFunc(id) {
   return function(e) {
     e.preventDefault();
+
     // Hide help text under controls.
     $('#note-title-help').hide();
     $('#note-content-help').hide();
@@ -124,9 +127,10 @@ function getNoteUpdateFunc(id) {
 function getNoteEditFunc(id) {
   return function(e) {
     // Show the correct view.
-    $('#note-list').hide();
-    $('#note-viewer').hide();
-    $('#note-editor').show();
+    toEditor();
+
+    // Change the submit button's value.
+    $('#note-update').val('Update');
 
     // Query for the note's existing data.
     $.ajax({
@@ -146,6 +150,7 @@ function getNoteEditFunc(id) {
       }
 
       // Set the correct function to store the data upon submit.
+      $('#note-update').unbind('click');
       $('#note-update').on('click', getNoteUpdateFunc(id));
     });
   };
@@ -189,30 +194,6 @@ function updateNoteList() {
   });
 }
 
-function createNote(id) {
-
-}
-
-function storeNote(id) {
-
-}
-
-function showNote(id) {
-
-}
-
-function editNote(id) {
-
-}
-
-function updateNote(id) {
-
-}
-
-function deleteNote(id) {
-
-}
-
 // Event handlers
 
 $('#logout').on('click', function(e) {
@@ -224,10 +205,57 @@ $('#logout').on('click', function(e) {
 });
 
 $('#tolist').on('click', function(e) {
-  // Return to viewing the notes list.
-  $('#note-list').show();
-  $('#note-viewer').hide();
-  $('#note-editor').hide();
+  toList();
+});
+
+$('#newnote').on('click', function(e) {
+  // Switch to the editor.
+  toEditor();
+
+  // Clear the editor values.
+  $('#note-title-edit').val('');
+  $('#note-content-edit').val('');
+
+  // Change the value of the submit button.
+  $('#note-update').val('Store');
+
+  // Set the proper function for the submit button.
+  $('#note-update').unbind('click');
+  $('#note-update').bind('click', function(e) {
+    e.preventDefault();
+
+    // Hide help text under controls.
+    $('#note-title-help').hide();
+    $('#note-content-help').hide();
+
+    // Send a request to store the new note.
+    $.ajax({
+      url: '/api/note',
+      type: 'POST',
+      data: {
+        "title": $('#note-title-edit').val(),
+        "content": $('#note-content-edit').val()
+      },
+      headers: {
+        "Authorization": getAuthHeader()
+      }
+    }).done(function(data) {
+      if (data.errors.length > 0) {
+        // Log errors.
+        console.log(data.errors);
+      } else if (data.fields["title"]) {
+        $('#note-title-help').text(data.fields["title"]);
+        $('#note-title-help').show();
+      } else if (data.fields["content"]) {
+        $('#note-content-help').text(data.fields["content"]);
+        $('#note-title-help').show();
+      } else {
+        // If successful, update the list and return to it.
+        updateNoteList();
+        toList();
+      }
+    });
+  });
 });
 
 // Setup logic
