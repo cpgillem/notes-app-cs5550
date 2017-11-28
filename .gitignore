@@ -2,7 +2,6 @@
 **.swp
 
 # Binaries and Compiled
-public/**
 app/app
 db/db
 
