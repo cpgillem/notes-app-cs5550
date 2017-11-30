@@ -27,7 +27,7 @@ func (c *Context) LoggedInUser(r *http.Request) (uID int64, admin bool, err erro
 		err = errors.New("Authorization header not found.")
 		return 
 	}
-	
+
 	// Check for a token.
 	if strings.Index(authHeader, "Bearer ") != 0 {
 		err = errors.New("No token found in authorization header.")

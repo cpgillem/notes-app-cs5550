@@ -204,7 +204,7 @@ $('#logout').on('click', function(e) {
   window.location = '/login.html';
 });
 
-$('#tolist').on('click', function(e) {
+$('#tolist, #brand').on('click', function(e) {
   toList();
 });
 
