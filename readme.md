@@ -1,6 +1,6 @@
 # Notes App
 
-A simplified Google-keep-like notes app for CS 5550 (Networks).
+A simplified Google-keep-like notes app. Submitted as a semester project for CS 5550 (Networks) at Western Michigan University.
 
 # Dev Environment Notes
 
