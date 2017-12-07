@@ -2,6 +2,53 @@
 
 A simplified Google-keep-like notes app. Submitted as a semester project for CS 5550 (Networks) at Western Michigan University.
 
+# Prerequisites
+
+- [Go 1.9](https://golang.org/doc/install)
+- [MySQL](https://mysql.com)
+
+# Setup Guide
+
+1. Install the prerequisites:
+
+   ```bash
+   $ go get -u github.com/gorilla/mux
+   $ go get -u github.com/dgriijalva/jwt-go
+   $ go get -u github.com/auth0/go-jwt-middleware
+   $ go get -u github.com/urfave/negroni
+   $ go get -u github.com/go-sql-driver/mysql
+   ```
+   
+1. Generate RSA keys for the app directory:
+   ```bash
+   scripts/keygen.sh app/keys
+   ```
+   
+1. Change to the directory of the project and bulid it:
+
+   ```bash
+   $ cd notes-app-cs5550
+   $ go build
+   ```
+   
+1. Create a database user in MySQL with the username `notes_app` and the password `notes_app`.
+
+1. Set the database up and seed it:
+
+   ```bash
+   $ db/db setup
+   $ db/db seed
+   ```
+   
+1. Run the app from the `app` directory:
+
+   ```bash
+   $ cd app
+   $ ./app 8080
+   ```
+   
+1. Access the page from `http://localhost:8080/`. Log in with the username`nonadmin` and password `password`.
+
 # Dev Environment Notes
 
 - Create database and user
